@@ -11,6 +11,6 @@ namespace Biblioteca.Data
 
         }
 
-        public DbSet<Livro> Livros { get; set; }
+        public DbSet<livro> Livros { get; set; }
     }
 }

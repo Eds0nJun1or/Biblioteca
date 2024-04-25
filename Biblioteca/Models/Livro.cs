@@ -2,7 +2,7 @@
 
 namespace Biblioteca.Models;
 
-public class Livro
+public class livro
 {
     [Key]
     [Required]
@@ -10,7 +10,7 @@ public class Livro
     [Required(ErrorMessage = "O título do livro é obrigatório")]
     public string Titulo { get; set; }
     [Required(ErrorMessage = "O gênero do livro é obrigatório")]
-    [MaxLength(50, ErrorMessage = "O tamanho do gênero não pode exceder 30 caracteres")]
+    [MaxLength(50, ErrorMessage = "O tamanho do gênero não pode exceder 50 caracteres")]
     public string Genero { get; set; }
     [Required]
     [Range(45, 1000, ErrorMessage = "O livro deve ter entre 45 e 1000 páginas")]
