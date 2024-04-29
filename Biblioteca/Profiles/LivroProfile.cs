@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using Biblioteca.Data.Dtos;
+using Biblioteca.Data.Dtos.Reponse;
+using Biblioteca.Data.Dtos.Request;
 using Biblioteca.Models;
 
 namespace Biblioteca.Profiles;
