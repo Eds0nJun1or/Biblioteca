@@ -9,9 +9,9 @@ public class LivroProfile : Profile
 {
     public LivroProfile()
     {
-        CreateMap<CreateLivroDto, livro>();
-        CreateMap<UpdateLivroDto, livro>();
-        CreateMap<livro, UpdateLivroDto>();
-        CreateMap<livro, ReadLivroDto>();
+        CreateMap<CreateLivroDto, Livro>();
+        CreateMap<UpdateLivroDto, Livro>();
+        CreateMap<Livro, UpdateLivroDto>();
+        CreateMap<Livro, ReadLivroDto>();
     }
 }

@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Biblioteca.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Biblioteca.Models;
 
-public class livro
+public class Livro
 {
     [Key]
     [Required(ErrorMessage = "ID do livro é obrigatório")]
@@ -34,5 +33,7 @@ public class livro
     public float Valor { get; set; }
 
     [Required(ErrorMessage = "O status do livro é obrigatório")]
-    public string Status { get; set; }
+    public StatusLivros Status { get; set; }
+
+    public virtual ICollection<Exemplar> Exemplares { get; set; }
 }

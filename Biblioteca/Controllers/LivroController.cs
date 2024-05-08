@@ -1,23 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Biblioteca.Models;
 using Biblioteca.Data;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.JsonPatch;
 using Biblioteca.Data.Dtos.Request;
 using Biblioteca.Data.Dtos.Reponse;
+//using Microsoft.AspNetCore.Authorization;
 
 namespace Biblioteca.Controllers
 {
+    //[Authorize]
     [ApiController]
     [Route("[controller]")]
     public class LivroController : ControllerBase
     {
-        private LivroContext _context;
+        private BibliotecaContext _context;
         private IMapper _mapper;
 
-        public LivroController(LivroContext context, IMapper mapper)
+        public LivroController(BibliotecaContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -35,10 +35,10 @@ namespace Biblioteca.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult AdicionaLivro([FromBody] CreateLivroDto livroDto)
         {
-            livro livro = _mapper.Map<livro>(livroDto);
+            Livro livro = _mapper.Map<Livro>(livroDto);
             _context.Livros.Add(livro);
             _context.SaveChanges();
-            return Created(string.Empty, _mapper.Map<ReadLivroDto>(livro)); ;
+            return CreatedAtAction(nameof(RecuperaLivroPorId), new { id = livro.Id }, livro);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Biblioteca.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult AtualizaFilme(int id, [FromBody] UpdateLivroDto livroDto)
+        public IActionResult AtualizaLivro(int id, [FromBody] UpdateLivroDto livroDto)
         {
             var livro = _context.Livros.FirstOrDefault(l => l.Id == id);
             if (livro == null)
@@ -129,7 +129,7 @@ namespace Biblioteca.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult DeletaFilme(int id)
+        public IActionResult DeletaLivro(int id)
         {
             var livro = _context.Livros.FirstOrDefault(livro => livro.Id == id);
             if (livro == null) return NotFound();

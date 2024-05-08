@@ -1,17 +1,24 @@
 using Biblioteca.Data;
+using Biblioteca.Infra.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Text;
+
+//string chaveSecreta = "d3503da4-b77e-45a7-b2ec-02c6bef93f7e";
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString
-    ("LivroConnection");
+    ("BibliotecaConnection");
 
-builder.Services.AddDbContext<LivroContext>(opts =>
+builder.Services.AddDbContext<BibliotecaContext>(opts =>
     opts.UseMySql(connectionString, ServerVersion.AutoDetect
      (connectionString)));
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 builder.Services.
     AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -27,7 +34,47 @@ builder.Services.AddSwaggerGen(c =>
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
+
+    //var securitySchema = new OpenApiSecurityScheme
+    //{
+    //    Name = "JWT Autenticação",
+    //    Description = "Entre com o JWT Bearer token",
+    //    In = ParameterLocation.Header,
+    //    Type = SecuritySchemeType.Http,
+    //    Scheme = "bearer",
+    //    BearerFormat = "JWT",
+    //    Reference = new OpenApiReference
+    //    {
+    //        Id = JwtBearerDefaults.AuthenticationScheme,
+    //        Type = ReferenceType.SecurityScheme
+    //    }
+    //};
+
+    //c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securitySchema);
+    //c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    //{
+    //    { securitySchema, new string[] {} }
+    //});
+
 });
+
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//    }).AddJwtBearer(options =>
+//    {
+//        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+//        {
+//            ValidateIssuer = true,
+//            ValidateAudience = true,
+//            ValidateLifetime = true,
+//            ValidateIssuerSigningKey = true,
+//            ValidIssuer = "Biblioteca",
+//            ValidAudience = "API",
+//            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chaveSecreta))
+//        };
+//    });
 
 var app = builder.Build();
 
@@ -40,6 +87,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
