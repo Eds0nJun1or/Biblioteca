@@ -15,6 +15,7 @@ namespace Biblioteca.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Emprestimo> Emprestimos { get; set; }
         //public DbSet<Funcionario> Funcionarios { get; set; }
+        public DbSet<Multa> Multas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

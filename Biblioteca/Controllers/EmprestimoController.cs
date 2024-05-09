@@ -63,10 +63,10 @@ namespace Biblioteca.Controllers
         }
 
         /// <summary>
-        /// Consulta a quantidade de livros emprestados por um usuário.
+        /// Consulta os empréstimos feitos por um usuário.
         /// </summary>
         /// <param name="usuarioId">ID do usuário.</param>
-        /// <returns>Quantidade de livros emprestados.</returns>
+        /// <returns>Lista de empréstimos.</returns>
         /// <response code="200">Caso o usuário seja encontrado e a consulta seja bem-sucedida.</response>
         /// <response code="404">Caso o usuário não seja encontrado.</response>
         [HttpGet("LivrosEmprestados/{usuarioId}")]
@@ -81,11 +81,16 @@ namespace Biblioteca.Controllers
                 return NotFound("Usuário não encontrado.");
             }
 
-            int livrosEmprestados = _context.Emprestimos
+            var loans = _context.Emprestimos
                 .Where(e => e.UsuarioId == usuario.Id && e.Status == StatusEmprestimo.Ativo)
-                .Count();
+                .ToList();
 
-            return Ok(livrosEmprestados);
+            if (loans.Count == 0)
+            {
+                return NotFound("Nenhum empréstimo encontrado para este usuário.");
+            }
+
+            return Ok(loans);
         }
 
         /// <summary>

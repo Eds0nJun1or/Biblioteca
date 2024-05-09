@@ -1,5 +1,5 @@
 using Biblioteca.Data;
-using Biblioteca.Infra.Repositories;
+using Biblioteca.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +18,7 @@ builder.Services.AddDbContext<BibliotecaContext>(opts =>
     opts.UseMySql(connectionString, ServerVersion.AutoDetect
      (connectionString)));
 
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 builder.Services.
     AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

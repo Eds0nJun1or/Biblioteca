@@ -1,5 +1,6 @@
-﻿using Biblioteca.Infra.Repositories;
-using Biblioteca.Models;
+﻿using Biblioteca.Models;
+using Biblioteca.Services;
+
 //using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,9 +11,9 @@ namespace Biblioteca.Controllers
     [Route("[controller]")]
     public class UsuarioController : ControllerBase
     {
-        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IUsuarioService _usuarioRepository;
 
-        public UsuarioController(IUsuarioRepository usuarioRepository)
+        public UsuarioController(IUsuarioService usuarioRepository)
         {
             _usuarioRepository = usuarioRepository;
         }

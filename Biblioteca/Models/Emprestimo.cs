@@ -28,5 +28,6 @@ namespace Biblioteca.Models
 
         public Usuario Usuario { get; set; }
         public Exemplar Exemplar { get; set; }
+        public DateTime DataDevolucaoPrevista { get; internal set; }
     }
 }
