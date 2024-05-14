@@ -55,22 +55,25 @@ O Sistema de Gerenciamento de Biblioteca oferece um conjunto abrangente de funci
 
 A implementação do Sistema de Gerenciamento de Biblioteca deve seguir as seguintes etapas:
 
-Estruturação do Projeto e Configuração do Ambiente de Desenvolvimento:
-Definir a estrutura do projeto e as ferramentas de desenvolvimento a serem utilizadas.
-Configurar o ambiente de desenvolvimento, incluindo banco de dados, IDE e ferramentas de versionamento de código.
-Desenvolvimento das Funcionalidades Básicas:
-Implementar as funcionalidades CRUD para livros e usuários.
-Desenvolver as funcionalidades de empréstimo e devolução de livros.
-Integrar o sistema com um banco de dados SQL utilizando o Entity Framework Core.
-Implementação das Funcionalidades Adicionais:
-Implementar a API RESTful e garantir a segurança com autenticação JWT.
-Aplicar validação de dados em todas as entradas do sistema.
-Desenvolver testes unitários para verificar a confiabilidade do código.
-Desenvolvimento dos Desafios Adicionais:
-Documentar a API utilizando o Swagger para facilitar seu uso por outros desenvolvedores.
-Criar funcionalidades para geração de relatórios avançados.
-Implementar multas progressivas por atraso na devolução.
-Aplicar penalidades para usuários com histórico de atrasos recorrentes.
+1. ## Estruturação do Projeto e Configuração do Ambiente de Desenvolvimento:
+* Definir a estrutura do projeto e as ferramentas de desenvolvimento a serem utilizadas.
+* Configurar o ambiente de desenvolvimento, incluindo banco de dados, IDE e ferramentas de versionamento de código.
+  
+2. ## Desenvolvimento das Funcionalidades Básicas:
+* Implementar as funcionalidades CRUD para livros e usuários.
+* Desenvolver as funcionalidades de empréstimo e devolução de livros.
+* Integrar o sistema com um banco de dados SQL utilizando o Entity Framework Core.
+  
+3. ## Implementação das Funcionalidades Adicionais:
+* Implementar a API RESTful e garantir a segurança com autenticação JWT.
+* Aplicar validação de dados em todas as entradas do sistema.
+* Desenvolver testes unitários para verificar a confiabilidade do código.
+  
+4. ## Desenvolvimento dos Desafios Adicionais:
+* Documentar a API utilizando o Swagger para facilitar seu uso por outros desenvolvedores.
+* Criar funcionalidades para geração de relatórios avançados.
+* Implementar multas progressivas por atraso na devolução.
+* Aplicar penalidades para usuários com histórico de atrasos recorrentes.
 
 ## Observações
 
