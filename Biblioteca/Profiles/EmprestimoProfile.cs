@@ -8,8 +8,8 @@ public class EmprestimoProfile : Profile
     public EmprestimoProfile()
     {
         CreateMap<CreateEmprestimoDto, Emprestimo>();
-        CreateMap<UptadeEmprestimoDto, Emprestimo>();
-        CreateMap<Emprestimo, UptadeEmprestimoDto>();
+        CreateMap<UpdateEmprestimoDto, Emprestimo>();
+        CreateMap<Emprestimo, UpdateEmprestimoDto>();
         CreateMap<Emprestimo, ReadEmprestimoDto>();
     }
 }

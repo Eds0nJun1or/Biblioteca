@@ -48,7 +48,7 @@ namespace Biblioteca.Controllers
                 return NotFound("Empréstimo não encontrado.");
             }
 
-            var diasAtrasados = DateTime.Now.Subtract(emprestimo.DataDevolucaoPrevista).Days;
+            var diasAtrasados = DateTime.Now.Subtract(emprestimo.DataPrevistaDevolucao).Days;
             if (diasAtrasados <= 0)
             {
                 return BadRequest("O empréstimo ainda não está em atraso.");

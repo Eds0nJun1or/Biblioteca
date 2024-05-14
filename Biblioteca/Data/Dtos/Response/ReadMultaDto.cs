@@ -1,6 +1,6 @@
 ﻿using Biblioteca.Enums;
 using Biblioteca.Models;
-using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Biblioteca.Data.Dtos.Response
 {
@@ -19,7 +19,7 @@ namespace Biblioteca.Data.Dtos.Response
         public int DiasAtrasados { get; set; }
 
         public StatusMulta Status { get; set; }
-
+        [JsonIgnore]
         public Emprestimo Emprestimo { get; set; }
     }
 }

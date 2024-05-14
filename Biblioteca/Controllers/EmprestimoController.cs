@@ -6,12 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Biblioteca.Data.Dtos.Response;
 using Biblioteca.Data.Dtos.Request;
 using Biblioteca.Enums;
-//using Microsoft.AspNetCore.Authorization;
-
 
 namespace Biblioteca.Controllers
 {
-    //[Authorize]
     [ApiController]
     [Route("[controller]")]
     public class EmprestimoController : ControllerBase
@@ -39,24 +36,32 @@ namespace Biblioteca.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public IActionResult AdicionaEmprestimo([FromBody] CreateEmprestimoDto emprestimoDto)
+        public async Task<IActionResult> AdicionaEmprestimo([FromBody] CreateEmprestimoDto emprestimoDto)
         {
-            var livro = _context.Livros.FirstOrDefault(l => l.Id == emprestimoDto.LivroId);
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == emprestimoDto.UsuarioId);
+            var livro = await _context.Livros.FindAsync(emprestimoDto.ExemplarId);
+            var usuario = await _context.Usuarios.FindAsync(emprestimoDto.UsuarioId);
 
-            int livrosEmprestados = _context.Emprestimos
+            if (livro == null || usuario == null)
+            {
+                return NotFound("Livro ou usuário não encontrado.");
+            }
+
+            int livrosEmprestados = await _context.Emprestimos
                 .Where(e => e.UsuarioId == usuario.Id && e.Status == StatusEmprestimo.Ativo)
-                .Count();
+                .CountAsync();
 
             if (livrosEmprestados >= 3)
             {
-                return BadRequest("O usuário já possui o limite máximo de 3 livros emprestados.");
+                return Conflict("O usuário já possui o limite máximo de 3 livros emprestados.");
             }
 
-            Emprestimo emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
+            var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
+            emprestimo.Livro = livro;
+            emprestimo.Usuario = usuario;
+            emprestimo.DatahoraEmprestimo = DateTime.UtcNow;
 
-            _context.Emprestimos.Add(emprestimo);
-            _context.SaveChanges();
+            await _context.AddAsync(emprestimo);
+            await _context.SaveChangesAsync();
 
             var emprestimoDtoResponse = _mapper.Map<ReadEmprestimoDto>(emprestimo);
             return CreatedAtAction(nameof(RecuperaEmprestimoPorId), new { id = emprestimo.Id }, emprestimoDtoResponse);
@@ -72,18 +77,24 @@ namespace Biblioteca.Controllers
         [HttpGet("LivrosEmprestados/{usuarioId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult ConsultaLivrosEmprestadosUsuario(int usuarioId)
+        public async Task<IActionResult> ConsultaLivrosEmprestadosUsuario(int usuarioId)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
+            var usuario = await _context.Usuarios.FindAsync(usuarioId);
 
             if (usuario == null)
             {
                 return NotFound("Usuário não encontrado.");
             }
 
-            var loans = _context.Emprestimos
-                .Where(e => e.UsuarioId == usuario.Id && e.Status == StatusEmprestimo.Ativo)
-                .ToList();
+            var loans = await _context.Emprestimos
+                .Where(e => e.UsuarioId == usuarioId && e.Status == StatusEmprestimo.Ativo)
+                .Select(e => new {
+                    Id = e.Id,
+                    DatahoraEmprestimo = e.DatahoraEmprestimo,
+                    Exemplar = new { Id = e.ExemplarId }, 
+                    Livro = new { Id = e.Exemplar.LivroId } 
+                })
+                .ToListAsync();
 
             if (loans.Count == 0)
             {
@@ -92,6 +103,7 @@ namespace Biblioteca.Controllers
 
             return Ok(loans);
         }
+
 
         /// <summary>
         /// Recupera um empréstimo específico por ID.
@@ -103,25 +115,20 @@ namespace Biblioteca.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult RecuperaEmprestimoPorId(int id)
+        public async Task<IActionResult> RecuperaEmprestimoPorId(int id)
         {
-            var emprestimo = _context.Emprestimos
+            var emprestimo = await _context.Emprestimos
                 .Include(e => e.Usuario)
                 .Include(e => e.Exemplar)
                 .Include(e => e.Exemplar.Livro)
-                .FirstOrDefault(e => e.Id == id);
+                .FirstOrDefaultAsync(e => e.Id == id);
 
             if (emprestimo == null)
             {
                 return NotFound("Empréstimo não encontrado.");
             }
 
-            var usuarioPossuiLimite = _context.Emprestimos
-                .Where(e => e.UsuarioId == emprestimo.UsuarioId && e.Status == StatusEmprestimo.Ativo)
-                .Count() >= 3;
-
             var emprestimoDto = _mapper.Map<ReadEmprestimoDto>(emprestimo);
-            emprestimoDto.UsuarioAtingiuLimiteEmprestimos = usuarioPossuiLimite;
 
             return Ok(emprestimoDto);
         }
@@ -139,16 +146,16 @@ namespace Biblioteca.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public IActionResult AtualizaEmprestimo(int id, [FromBody] UptadeEmprestimoDto emprestimoDto)
+        public async Task<IActionResult> AtualizaEmprestimo(int id, [FromBody] UpdateEmprestimoDto emprestimoDto)
         {
             if (id != emprestimoDto.Id)
             {
                 return BadRequest("O ID do empréstimo não corresponde ao ID fornecido.");
             }
 
-            var emprestimo = _context.Emprestimos
+            var emprestimo = await _context.Emprestimos
                 .Include(e => e.Usuario)
-                .FirstOrDefault(e => e.Id == id);
+                .FirstOrDefaultAsync(e => e.Id == id);
 
             if (emprestimo == null)
             {
@@ -157,9 +164,9 @@ namespace Biblioteca.Controllers
 
             if (emprestimo.UsuarioId != emprestimoDto.UsuarioId)
             {
-                int livrosEmprestadosNovoUsuario = _context.Emprestimos
+                int livrosEmprestadosNovoUsuario = await _context.Emprestimos
                     .Where(e => e.UsuarioId == emprestimoDto.UsuarioId && e.Status == StatusEmprestimo.Ativo)
-                    .Count();
+                    .CountAsync();
 
                 if (livrosEmprestadosNovoUsuario >= 3)
                 {
@@ -168,9 +175,11 @@ namespace Biblioteca.Controllers
             }
 
             _mapper.Map(emprestimoDto, emprestimo);
-            _context.SaveChanges();
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
     }
 }
+

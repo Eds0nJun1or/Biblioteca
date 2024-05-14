@@ -1,4 +1,6 @@
-﻿namespace Biblioteca.Data.Dtos.Response
+﻿using Biblioteca.Enums;
+
+namespace Biblioteca.Data.Dtos.Response
 {
     public class ReadEmprestimoDto
     {
@@ -6,11 +8,11 @@
         public int UsuarioId { get; set; }
         public int ExemplarId { get; set; }
         public DateTime DatahoraEmprestimo { get; set; }
-        public DateOnly DataPrevistaInicial { get; set; }
+        public DateTime DataPrevistaDevolucao { get; set; }
         public DateOnly? DataDevolucao { get; set; }
-        public int Status { get; set; }
-        public DateTime HoraDaConsulta { get; set; } = DateTime.Now;
-
-        public bool UsuarioAtingiuLimiteEmprestimos { get; set; }
+        public StatusEmprestimo Status { get; set; }
+        public string NomeUsuario { get; set; }
+        public string TituloExemplar { get; set; }
+        public bool UsuarioAtingiuLimiteEmprestimos { get; internal set; }
     }
 }

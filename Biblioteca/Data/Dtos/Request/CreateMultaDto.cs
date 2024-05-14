@@ -27,6 +27,6 @@ namespace Biblioteca.Data.Dtos.Request
         [Required(ErrorMessage = "O status da multa é obrigatório")]
         public StatusMulta Status { get; set; }
 
-        public Emprestimo Emprestimo { get; set; }
+        //public Emprestimo Emprestimo { get; set; }
     }
 }
