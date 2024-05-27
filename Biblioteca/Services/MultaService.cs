@@ -85,20 +85,41 @@ namespace Biblioteca.Services
         {
             var multas = await _context.Multas
                 .Include(m => m.Emprestimo)
-                    .ThenInclude(e => e.Usuario)
+                .ThenInclude(e => e.Usuario)
                 .Include(m => m.Emprestimo)
-                    .ThenInclude(e => e.Exemplar)
-                        .ThenInclude(ex => ex.Livro)
+                .ThenInclude(e => e.Exemplar)
+                .ThenInclude(ex => ex.Livro)
                 .ToListAsync();
 
-            var multasDto = _mapper.Map<List<ReadMultaDto>>(multas);
-            foreach (var multa in multasDto)
+            if (multas == null)
             {
-                var usuario = await _context.Usuarios.FindAsync(multa.UsuarioId);
-                var exemplar = await _context.Exemplares.FindAsync(multa.Emprestimo.ExemplarId);
+                throw new NullReferenceException("Lista de multas nula.");
+            }
+
+            var multasDto = _mapper.Map<List<ReadMultaDto>>(multas);
+
+            foreach (var multaDto in multasDto)
+            {
+                var usuario = await _context.Usuarios.FindAsync(multaDto.UsuarioId);
+                if (usuario == null)
+                {
+                    throw new NullReferenceException($"Usuário com ID {multaDto.UsuarioId} não encontrado.");
+                }
+
+                var exemplar = await _context.Exemplares.FindAsync(multaDto.Emprestimo.ExemplarId);
+                if (exemplar == null)
+                {
+                    throw new NullReferenceException($"Exemplar com ID {multaDto.Emprestimo.ExemplarId} não encontrado.");
+                }
+
                 var livro = await _context.Livros.FindAsync(exemplar.LivroId);
-                multa.NomeUsuario = usuario.Nome;
-                multa.TituloLivro = livro.Nome;
+                if (livro == null)
+                {
+                    throw new NullReferenceException($"Livro com ID {exemplar.LivroId} não encontrado.");
+                }
+
+                multaDto.NomeUsuario = usuario.Nome;
+                multaDto.TituloLivro = livro.Nome;
             }
 
             return multasDto;

@@ -6,7 +6,7 @@ namespace Biblioteca.Data.Dtos.Request
     public class UpdateEmprestimoDto
     {
         [Required(ErrorMessage = "ID do usuário é obrigatório")]
-        public int UsuarioId {  get; set; }
+        public int UsuarioId { get; set; }
 
         [Required(ErrorMessage = "ID do empréstimo é obrigatório")]
         public int EmprestimoId { get; set; }
@@ -23,6 +23,5 @@ namespace Biblioteca.Data.Dtos.Request
         public DateTime? DataDevolucao { get; set; }
 
         [Required(ErrorMessage = "O status do empréstimo é obrigatório")]
-        public StatusEmprestimo Status { get; set; }
-    }
+        public StatusEmprestimo Status { get; set; }    }
 }

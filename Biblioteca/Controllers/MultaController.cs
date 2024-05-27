@@ -73,10 +73,26 @@ namespace Biblioteca.Controllers
         /// <response code="200">Caso as multas sejam encontradas.</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RecuperaMultas()
         {
-            var multas = await _multaService.RecuperarTodasAsMultas();
-            return Ok(multas);
+            try
+            {
+                var multas = await _multaService.RecuperarTodasAsMultas();
+
+                if (multas == null || !multas.Any())
+                {
+                    return NotFound("Nenhuma multa encontrada.");
+                }
+
+                return Ok(multas);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (ex) here if necessary
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+            }
         }
 
         /// <summary>

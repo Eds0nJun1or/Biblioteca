@@ -27,9 +27,6 @@ namespace Biblioteca.Models
         public bool Bloqueado { get; set; }
 
         [JsonIgnore]
-        public bool HistoricoAtrasos { get; set; } // Indica se o usuário tem histórico de atrasos
-
-        [JsonIgnore]
         public virtual ICollection<Emprestimo> Emprestimos { get; set; }
 
         [JsonIgnore]

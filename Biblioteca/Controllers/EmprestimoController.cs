@@ -172,16 +172,16 @@ namespace Biblioteca.Controllers
         /// <response code="204">Indica que a devolução foi bem-sucedida.</response>
         /// <response code="404">Retorna mensagem de erro se o empréstimo ou usuário não for encontrado.</response>
         /// <response code="400">Retorna mensagem de erro se o empréstimo já estiver devolvido.</response>
-        [HttpPost("devolver/{funcionarioId}/{emprestimoId}")]
+        [HttpPost("devolver/{funcionarioId}/{usuarioId}/{emprestimoId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DevolverEmprestimo(int funcionarioId, int emprestimoId)
+        public async Task<IActionResult> DevolverEmprestimo(int funcionarioId, int usuarioId, int emprestimoId)
         {
             try
             {
-                await _emprestimoService.DevolverEmprestimo(funcionarioId, emprestimoId);
+                await _emprestimoService.DevolverEmprestimo(funcionarioId, usuarioId, emprestimoId);
                 return NoContent();
             }
             catch (EmprestimoNotFoundException ex)
@@ -191,6 +191,10 @@ namespace Biblioteca.Controllers
             catch (EmprestimoJaDevolvidoException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (UsuarioSemPermissaoException ex)
+            {
+                return Forbid(ex.Message);
             }
             catch (Exception ex)
             {

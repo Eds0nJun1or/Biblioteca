@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Biblioteca.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Biblioteca.Data.Dtos.Reponse
 {
@@ -12,7 +13,7 @@ namespace Biblioteca.Data.Dtos.Reponse
         public string Genero { get; set; }
         public int Paginas { get; set; }
         public float Valor { get; set; }
-        public int Status { get; set; }
+        public StatusLivros Status { get; set; }
         public DateTime HoraDaConsulta { get; set; } = DateTime.Now;
     }
 }

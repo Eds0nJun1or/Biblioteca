@@ -1,4 +1,6 @@
-﻿namespace Biblioteca.Services.Exceptions
+﻿using System.Runtime.Serialization;
+
+namespace Biblioteca.Services.Exceptions
 {
     public class EmprestimoNotFoundException : Exception
     {
@@ -31,6 +33,26 @@
     public class EmprestimoJaDevolvidoException : Exception
     {
         public EmprestimoJaDevolvidoException(string message) : base(message)
+        {
+        }
+    }
+
+    [Serializable]
+    internal class UsuarioSemPermissaoException : Exception
+    {
+        public UsuarioSemPermissaoException()
+        {
+        }
+
+        public UsuarioSemPermissaoException(string? message) : base(message)
+        {
+        }
+
+        public UsuarioSemPermissaoException(string? message, Exception? innerException) : base(message, innerException)
+        {
+        }
+
+        protected UsuarioSemPermissaoException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

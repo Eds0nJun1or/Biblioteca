@@ -180,9 +180,6 @@ namespace Biblioteca.Migrations
                     b.Property<int>("DiasAtrasados")
                         .HasColumnType("int");
 
-                    b.Property<int>("DiasAtrasoMaximo")
-                        .HasColumnType("int");
-
                     b.Property<int>("EmprestimoId")
                         .HasColumnType("int");
 
@@ -206,8 +203,7 @@ namespace Biblioteca.Migrations
 
                     b.HasKey("MultaId");
 
-                    b.HasIndex("EmprestimoId")
-                        .IsUnique();
+                    b.HasIndex("EmprestimoId");
 
                     b.HasIndex("ExemplarId");
 
@@ -235,9 +231,6 @@ namespace Biblioteca.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("HistoricoAtrasos")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -292,8 +285,8 @@ namespace Biblioteca.Migrations
             modelBuilder.Entity("Biblioteca.Models.Multa", b =>
                 {
                     b.HasOne("Biblioteca.Models.Emprestimo", "Emprestimo")
-                        .WithOne("Multa")
-                        .HasForeignKey("Biblioteca.Models.Multa", "EmprestimoId")
+                        .WithMany("Multas")
+                        .HasForeignKey("EmprestimoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -314,8 +307,7 @@ namespace Biblioteca.Migrations
 
             modelBuilder.Entity("Biblioteca.Models.Emprestimo", b =>
                 {
-                    b.Navigation("Multa")
-                        .IsRequired();
+                    b.Navigation("Multas");
                 });
 
             modelBuilder.Entity("Biblioteca.Models.Exemplar", b =>

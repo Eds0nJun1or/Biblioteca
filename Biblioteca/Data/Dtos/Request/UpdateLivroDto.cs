@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Biblioteca.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Biblioteca.Data.Dtos.Request
 {
@@ -32,6 +33,6 @@ namespace Biblioteca.Data.Dtos.Request
         public float Valor { get; set; }
 
         [Required(ErrorMessage = "O status do livro é obrigatório")]
-        public int Status { get; set; }
+        public StatusLivros Status { get; set; }
     }
 }

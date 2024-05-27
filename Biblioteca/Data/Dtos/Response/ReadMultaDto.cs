@@ -15,6 +15,6 @@ namespace Biblioteca.Data.Dtos.Response
         public Emprestimo Emprestimo { get; set; }
         public string NomeUsuario { get; set; }
         public string TituloLivro { get; set; }
-        public object?[]? UsuarioId { get; internal set; }
+        public object UsuarioId { get; set; }
     }
 } 

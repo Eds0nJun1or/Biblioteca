@@ -1,8 +1,5 @@
 ﻿using Biblioteca.Enums;
-using Biblioteca.Models;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
 namespace Biblioteca.Data.Dtos.Request
 {
     public class CreateMultaDto
@@ -27,8 +24,5 @@ namespace Biblioteca.Data.Dtos.Request
 
         [Required(ErrorMessage = "O status da multa é obrigatório")]
         public StatusMulta Status { get; set; }
-
-        [JsonIgnore]
-        public Emprestimo Emprestimo { get; set; }
     }
 }

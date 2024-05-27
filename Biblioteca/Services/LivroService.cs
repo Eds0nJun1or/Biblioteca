@@ -72,9 +72,13 @@ namespace Biblioteca.Services
 
             livroPorId.Nome = livro.Nome;
             livroPorId.Autor = livro.Autor;
+            livroPorId.Editora = livro.Editora; 
+            livroPorId.DataPublicacao = livro.DataPublicacao; 
             livroPorId.Genero = livro.Genero;
+            livroPorId.Paginas = livro.Paginas;
+            livroPorId.Valor = livro.Valor;
+            livroPorId.Status = livro.Status;
 
-            _dbContext.Livros.Update(livroPorId);
             await _dbContext.SaveChangesAsync();
             return livroPorId;
         }

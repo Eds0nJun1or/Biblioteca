@@ -29,14 +29,19 @@ namespace Biblioteca.Data
               .WithMany(u => u.Emprestimos);
 
             modelBuilder.Entity<Exemplar>()
-            .HasOne(e => e.Livro)
-            .WithMany(l => l.Exemplares);
+              .HasOne(e => e.Livro)
+              .WithMany(l => l.Exemplares);
+
+            modelBuilder.Entity<Multa>()
+              .HasOne(m => m.Emprestimo) 
+              .WithMany(e => e.Multas) 
+              .HasForeignKey(m => m.EmprestimoId); 
 
             modelBuilder.Entity<Emprestimo>()
-            .Property(e => e.Status)
-            .HasConversion<string>(
-            v => v.ToString(),
-            v => Enum.Parse<StatusEmprestimo>(v));
+              .Property(e => e.Status)
+              .HasConversion<string>(
+                v => v.ToString(),
+                v => Enum.Parse<StatusEmprestimo>(v));
         }
     }
 }

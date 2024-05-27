@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Biblioteca.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMigrationBiblioteca : Migration
+    public partial class Biblioteca : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -78,8 +78,7 @@ namespace Biblioteca.Migrations
                     Email = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    Bloqueado = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    HistoricoAtrasos = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    Bloqueado = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -160,7 +159,6 @@ namespace Biblioteca.Migrations
                     FimMulta = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     DiasAtrasados = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    DiasAtrasoMaximo = table.Column<int>(type: "int", nullable: false),
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
                     ExemplarId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -210,8 +208,7 @@ namespace Biblioteca.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Multas_EmprestimoId",
                 table: "Multas",
-                column: "EmprestimoId",
-                unique: true);
+                column: "EmprestimoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Multas_ExemplarId",
