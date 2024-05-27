@@ -1,6 +1,7 @@
 ﻿using Biblioteca.Enums;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+
 
 namespace Biblioteca.Models
 {
@@ -8,7 +9,7 @@ namespace Biblioteca.Models
     {
         [Key]
         [Required(ErrorMessage = "ID do empréstimo é obrigatório")]
-        public int Id { get; set; }
+        public int EmprestimoId { get; set; }
 
         [Required(ErrorMessage = "O ID do usuário do empréstimo é obrigatório")]
         public int UsuarioId { get; set; }
@@ -16,22 +17,33 @@ namespace Biblioteca.Models
         [Required(ErrorMessage = "O ID do exemplar do empréstimo é obrigatório")]
         public int ExemplarId { get; set; }
 
+        [Required]
+        public int FuncionarioId { get; set; }
+
         [Required(ErrorMessage = "A data e hora do empréstimo é obrigatória")]
-        public DateTime DatahoraEmprestimo { get; set; }
+        public DateTime DataEmprestimo { get; set; }
 
+        [Required]
         public DateTime DataPrevistaDevolucao { get; set; }
-
-        public DateOnly? DataDevolucao { get; set; }
+        public DateTime? DataDevolucao { get; set; }
 
         [Required(ErrorMessage = "O status do empréstimo é obrigatório")]
         public StatusEmprestimo Status { get; set; }
 
         [JsonIgnore]
         public Usuario Usuario { get; set; }
+
         [JsonIgnore]
         public Exemplar Exemplar { get; set; }
+        
         [JsonIgnore]
-        public Livro Livro { get; internal set; }
+        public Livro Livro { get; set; }
+
+        [JsonIgnore]
+        internal object CalcularMulta;
+
+        [JsonIgnore]
+        public Multa Multa { get; set; }  
     }
 }
 

@@ -1,12 +1,11 @@
-﻿using Biblioteca.Models;
-using Biblioteca.Services;
-
-//using Microsoft.AspNetCore.Authorization;
+﻿using Biblioteca.Interfaces;
+using Biblioteca.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biblioteca.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UsuarioController : ControllerBase
@@ -26,10 +25,12 @@ namespace Biblioteca.Controllers
         /// <response code="201">Caso o usuário seja cadastrado com sucesso.</response>
         /// <response code="400">Caso haja algum erro na validação dos dados.</response>
         [HttpPost]
-        public async Task<ActionResult<Usuario>> Cadastrar([FromBody] Usuario Usuario)
+        [ProducesResponseType(typeof(Usuario), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Usuario>> Cadastrar([FromBody] Usuario usuario)
         {
-            Usuario usuario = await _usuarioRepository.Adicionar(Usuario);
-            return Ok(usuario);
+            usuario = await _usuarioRepository.Adicionar(usuario);
+            return CreatedAtAction(nameof(BuscarPorId), new { id = usuario.UsuarioId }, usuario);
         }
 
         /// <summary>
@@ -38,6 +39,7 @@ namespace Biblioteca.Controllers
         /// <returns>Lista de usuários.</returns>
         /// <response code="200">Caso a lista de usuários seja recuperada com sucesso.</response>
         [HttpGet]
+        [ProducesResponseType(typeof(List<Usuario>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<Usuario>>> BuscarUsuarios()
         {
             List<Usuario> usuarios = await _usuarioRepository.BuscarUsuarios();
@@ -52,9 +54,15 @@ namespace Biblioteca.Controllers
         /// <response code="200">Caso o usuário seja encontrado.</response>
         /// <response code="404">Caso o usuário não seja encontrado.</response>
         [HttpGet("{id}")]
-        public async Task<ActionResult<List<Usuario>>> BuscarPorId(int id)
+        [ProducesResponseType(typeof(Usuario), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Usuario>> BuscarPorId(int id)
         {
             Usuario usuario = await _usuarioRepository.BuscarPorId(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
             return Ok(usuario);
         }
 
@@ -68,10 +76,17 @@ namespace Biblioteca.Controllers
         /// <response code="400">Caso haja algum erro na validação dos dados.</response>
         /// <response code="404">Caso o usuário não seja encontrado.</response>
         [HttpPut("{id}")]
-        public async Task<ActionResult<Usuario>> Atualizar ([FromBody] Usuario Usuario, int id)
+        [ProducesResponseType(typeof(Usuario), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Usuario>> Atualizar([FromBody] Usuario usuario, int id)
         {
-            Usuario.Id = id;
-            Usuario usuario = await _usuarioRepository.Atualizar(Usuario, id);
+            usuario.UsuarioId = id;
+            usuario = await _usuarioRepository.Atualizar(usuario, id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
             return Ok(usuario);
         }
 
@@ -83,9 +98,15 @@ namespace Biblioteca.Controllers
         /// <response code="200">Caso o usuário seja apagado com sucesso.</response>
         /// <response code="404">Caso o usuário não seja encontrado.</response>
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Usuario>> Apagar(int id)
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<bool>> Apagar(int id)
         {
             bool apagado = await _usuarioRepository.Apagar(id);
+            if (!apagado)
+            {
+                return NotFound();
+            }
             return Ok(apagado);
         }
     }

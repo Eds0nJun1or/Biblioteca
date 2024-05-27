@@ -6,9 +6,7 @@ namespace Biblioteca.Enums
     {
         [Description("Pendente")]
         Pendente = 0,
-        [Description("Pago")]
-        Pago = 1,
-        [Description("Cancelado")]
-        Cancelado = 2
+        [Description("Paga")]
+        Paga = 1
     }
 }

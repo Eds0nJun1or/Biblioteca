@@ -6,7 +6,7 @@ namespace Biblioteca.Data.Dtos.Request
     {
         [Key]
         [Required(ErrorMessage = "ID do livro é obrigatório")]
-        public int Id { get; set; }
+        public int LivroId { get; set; }
 
         [Required(ErrorMessage = "O título do livro é obrigatório")]
         public string Nome { get; set; }

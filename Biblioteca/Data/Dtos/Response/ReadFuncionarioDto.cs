@@ -1,17 +1,13 @@
-﻿//using System.ComponentModel.DataAnnotations;
+﻿namespace Biblioteca.Data.Dtos.Response
+{
+    public class ReadFuncionarioDto
+    {
+        public int FuncionarioId { get; set; }
+        public string Cpf { get; set; }
+        public string NomeFuncionario { get; set; }
+        public DateOnly DataNascimento { get; set; }
+        public string Email { get; set; }
+        public string Telefone { get; set; }
+    }
+}
 
-//namespace Biblioteca.Data.Dtos.Response
-//{
-//    public class ReadFuncionarioDto
-//    {
-//        public int Id { get; set; }
-
-//        public string Login { get; set; }
-
-//        public string Senha { get; set; }
-
-//        public string NomeUsuario { get; set; }
-
-//        public DateOnly DataNascimento { get; set; }
-//    }
-//}

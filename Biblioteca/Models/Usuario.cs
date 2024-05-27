@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Biblioteca.Enums;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Biblioteca.Models
 {
@@ -6,7 +8,7 @@ namespace Biblioteca.Models
     {
         [Key]
         [Required(ErrorMessage = "ID do usuário é obrigatório")]
-        public int Id { get; set; }
+        public int UsuarioId { get; set; }
 
         [Required(ErrorMessage = "O nome do usuário é obrigatório")]
         public string Nome { get; set; }
@@ -19,6 +21,18 @@ namespace Biblioteca.Models
         [EmailAddress(ErrorMessage = "Email inválido")]
         public string Email { get; set; }
 
-        //public virtual ICollection<Emprestimo> Emprestimos { get; set; }
+        public StatusUsuario Status { get; set; } = StatusUsuario.Ativo;
+
+        [JsonIgnore]
+        public bool Bloqueado { get; set; }
+
+        [JsonIgnore]
+        public bool HistoricoAtrasos { get; set; } // Indica se o usuário tem histórico de atrasos
+
+        [JsonIgnore]
+        public virtual ICollection<Emprestimo> Emprestimos { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<Multa> Multas { get; set; }
     }
 }

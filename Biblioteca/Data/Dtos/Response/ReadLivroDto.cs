@@ -4,7 +4,7 @@ namespace Biblioteca.Data.Dtos.Reponse
 {
     public class ReadLivroDto
     {
-        public int Id { get; set; }
+        public int LivroId { get; set; }
         public string Nome { get; set; }
         public string Autor { get; set; }
         public string Editora { get; set; }

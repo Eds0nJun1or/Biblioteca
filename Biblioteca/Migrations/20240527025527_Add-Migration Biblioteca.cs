@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Biblioteca.Migrations
 {
     /// <inheritdoc />
-    public partial class Biblioteca : Migration
+    public partial class AddMigrationBiblioteca : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,10 +16,35 @@ namespace Biblioteca.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Funcionarios",
+                columns: table => new
+                {
+                    FuncionarioId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Cpf = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Senha = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NomeFuncionario = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DataNascimento = table.Column<DateOnly>(type: "date", nullable: false),
+                    Email = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Telefone = table.Column<string>(type: "varchar(11)", maxLength: 11, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Funcionarios", x => x.FuncionarioId);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Livros",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    LivroId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nome = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -36,7 +61,7 @@ namespace Biblioteca.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Livros", x => x.Id);
+                    table.PrimaryKey("PK_Livros", x => x.LivroId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -44,18 +69,21 @@ namespace Biblioteca.Migrations
                 name: "Usuarios",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nome = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Cpf = table.Column<string>(type: "varchar(11)", maxLength: 11, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Bloqueado = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    HistoricoAtrasos = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.PrimaryKey("PK_Usuarios", x => x.UsuarioId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -63,19 +91,19 @@ namespace Biblioteca.Migrations
                 name: "Exemplares",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    ExemplarId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     LivroId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Exemplares", x => x.Id);
+                    table.PrimaryKey("PK_Exemplares", x => x.ExemplarId);
                     table.ForeignKey(
                         name: "FK_Exemplares_Livros_LivroId",
                         column: x => x.LivroId,
                         principalTable: "Livros",
-                        principalColumn: "Id",
+                        principalColumn: "LivroId",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -84,36 +112,38 @@ namespace Biblioteca.Migrations
                 name: "Emprestimos",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    EmprestimoId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
                     ExemplarId = table.Column<int>(type: "int", nullable: false),
-                    DatahoraEmprestimo = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    FuncionarioId = table.Column<int>(type: "int", nullable: false),
+                    DataEmprestimo = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     DataPrevistaDevolucao = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    DataDevolucao = table.Column<DateOnly>(type: "date", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    DataDevolucao = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    Status = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     LivroId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Emprestimos", x => x.Id);
+                    table.PrimaryKey("PK_Emprestimos", x => x.EmprestimoId);
                     table.ForeignKey(
                         name: "FK_Emprestimos_Exemplares_ExemplarId",
                         column: x => x.ExemplarId,
                         principalTable: "Exemplares",
-                        principalColumn: "Id",
+                        principalColumn: "ExemplarId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Emprestimos_Livros_LivroId",
                         column: x => x.LivroId,
                         principalTable: "Livros",
-                        principalColumn: "Id",
+                        principalColumn: "LivroId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Emprestimos_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
-                        principalColumn: "Id",
+                        principalColumn: "UsuarioId",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -122,23 +152,37 @@ namespace Biblioteca.Migrations
                 name: "Multas",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    MultaId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     EmprestimoId = table.Column<int>(type: "int", nullable: false),
-                    Valor = table.Column<float>(type: "float", nullable: false),
+                    Valor = table.Column<double>(type: "double", nullable: false),
                     InicioMulta = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     FimMulta = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     DiasAtrasados = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    DiasAtrasoMaximo = table.Column<int>(type: "int", nullable: false),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    ExemplarId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Multas", x => x.Id);
+                    table.PrimaryKey("PK_Multas", x => x.MultaId);
                     table.ForeignKey(
                         name: "FK_Multas_Emprestimos_EmprestimoId",
                         column: x => x.EmprestimoId,
                         principalTable: "Emprestimos",
-                        principalColumn: "Id",
+                        principalColumn: "EmprestimoId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Multas_Exemplares_ExemplarId",
+                        column: x => x.ExemplarId,
+                        principalTable: "Exemplares",
+                        principalColumn: "ExemplarId");
+                    table.ForeignKey(
+                        name: "FK_Multas_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "UsuarioId",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -166,12 +210,26 @@ namespace Biblioteca.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Multas_EmprestimoId",
                 table: "Multas",
-                column: "EmprestimoId");
+                column: "EmprestimoId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Multas_ExemplarId",
+                table: "Multas",
+                column: "ExemplarId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Multas_UsuarioId",
+                table: "Multas",
+                column: "UsuarioId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Funcionarios");
+
             migrationBuilder.DropTable(
                 name: "Multas");
 

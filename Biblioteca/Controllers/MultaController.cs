@@ -1,209 +1,111 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Biblioteca.Models;
-using Biblioteca.Data;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Biblioteca.Enums;
 using Biblioteca.Data.Dtos.Request;
-using Biblioteca.Data.Dtos.Response;
-//using Microsoft.AspNetCore.Authorization;
+using Biblioteca.Exceptions;
+using Biblioteca.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Biblioteca.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class MultaController : ControllerBase
     {
-        private readonly BibliotecaContext _context;
-        private readonly IMapper _mapper;
+        private readonly IMultaService _multaService;
 
-        public MultaController(BibliotecaContext context, IMapper mapper)
+        public MultaController(IMultaService multaService)
         {
-            _context = context;
-            _mapper = mapper;
+            _multaService = multaService;
         }
 
         /// <summary>
-        /// Adiciona uma nova multa ao banco de dados.
+        /// Adiciona uma multa ao banco de dados.
         /// </summary>
-        /// <param name="multaDto">Objeto contendo os dados da multa.</param>
+        /// <param name="multaDto">Objeto com os campos necessários para criação de uma multa.</param>
         /// <returns>IActionResult</returns>
-        /// <response code="201">Caso a multa seja criada com sucesso.</response>
-        /// <response code="400">Caso haja algum erro na validação dos dados.</response>
+        /// <response code="201">Caso a inserção seja feita com sucesso.</response>
+        /// <response code="400">Caso o pedido seja inválido.</response>
         /// <response code="404">Caso o empréstimo não seja encontrado.</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult AdicionaMulta([FromBody] CreateMultaDto multaDto)
+        public async Task<IActionResult> AdicionaMulta([FromBody] CreateMultaDto multaDto)
         {
-            var emprestimo = _context.Emprestimos
-                .Include(e => e.Exemplar)
-                .Include(e => e.Exemplar.Livro)
-                .FirstOrDefault(e => e.Id == multaDto.EmprestimoId);
-
-            if (emprestimo == null)
+            try
             {
-                return NotFound("Empréstimo não encontrado.");
+                var multaId = await _multaService.AdicionarMulta(multaDto);
+                return CreatedAtAction(nameof(RecuperaMultaPorId), new { id = multaId }, multaDto);
             }
-
-            var diasAtrasados = DateTime.Now.Subtract(emprestimo.DataPrevistaDevolucao).Days;
-            if (diasAtrasados <= 0)
+            catch (NotFoundException ex)
             {
-                return BadRequest("O empréstimo ainda não está em atraso.");
+                return NotFound(ex.Message);
             }
-
-            var valorMulta = CalculaValorMulta(emprestimo.Exemplar.Livro.Valor, diasAtrasados);
-
-            Multa multa = new Multa
-            {
-                EmprestimoId = multaDto.EmprestimoId,
-                Valor = valorMulta,
-                InicioMulta = DateTime.Now,
-                DiasAtrasados = diasAtrasados,
-                Status = StatusMulta.Pendente
-            };
-
-            _context.Add(multa);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(RecuperaMultaPorId), new { id = multa.Id }, multa);
         }
 
         /// <summary>
-        /// Calcula o valor da multa com base no valor do livro e nos dias de atraso.
-        /// </summary>
-        /// <param name="valorLivro">Valor do livro emprestado.</param>
-        /// <param name="diasAtrasados">Quantidade de dias em atraso.</param>
-        /// <returns>Valor da multa calculado.</returns>
-        private float CalculaValorMulta(float valorLivro, int diasAtrasados)
-        {
-            float valorMultaBase = valorLivro * 0.1f;
-            float valorMultaTotal = valorMultaBase * diasAtrasados;
-
-            if (valorMultaTotal > valorLivro * 2)
-            {
-                valorMultaTotal = valorLivro * 2;
-            }
-
-            return valorMultaTotal;
-        }
-
-        /// <summary>
-        /// Recupera uma multa específica por ID.
+        /// Recupera uma multa pelo ID.
         /// </summary>
         /// <param name="id">ID da multa.</param>
-        /// <returns>Detalhes da multa.</returns>
+        /// <returns>IActionResult</returns>
         /// <response code="200">Caso a multa seja encontrada.</response>
         /// <response code="404">Caso a multa não seja encontrada.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult RecuperaMultaPorId(int id)
+        public async Task<IActionResult> RecuperaMultaPorId(int id)
         {
-            var multa = _context.Multas
-                .Include(m => m.Emprestimo)
-                .Include(m => m.Emprestimo.Exemplar)
-                .Include(m => m.Emprestimo.Exemplar.Livro)
-                .FirstOrDefault(m => m.Id == id);
-
-            if (multa == null)
+            try
             {
-                return NotFound("Multa não encontrada.");
+                var multa = await _multaService.RecuperarMultaPorId(id);
+                return Ok(multa);
             }
-
-            var multaDto = _mapper.Map<ReadMultaDto>(multa);
-            return Ok(multaDto);
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         /// <summary>
-        /// Consulta todas as multas pendentes.
+        /// Recupera todas as multas.
         /// </summary>
-        /// <returns>Lista de multas pendentes.</returns>
-        /// <response code="200">Caso existam multas pendentes.</response>
-        /// <response code="204">Caso não existam multas pendentes.</response>
-        [HttpGet("Pendentes")]
+        /// <returns>IActionResult</returns>
+        /// <response code="200">Caso as multas sejam encontradas.</response>
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult ConsultaMultasPendentes()
+        public async Task<IActionResult> RecuperaMultas()
         {
-            var multasPendentes = _context.Multas
-                .Where(m => m.Status == StatusMulta.Pendente)
-                .ToList();
-
-            if (multasPendentes.Count == 0)
-            {
-                return NoContent();
-            }
-
-            var multasDto = _mapper.Map<List<ReadMultaDto>>(multasPendentes);
-            return Ok(multasDto);
+            var multas = await _multaService.RecuperarTodasAsMultas();
+            return Ok(multas);
         }
 
         /// <summary>
-        /// Atualiza o status de uma multa para "Pago".
+        /// Paga uma multa.
         /// </summary>
         /// <param name="id">ID da multa.</param>
-        /// <returns>NoContent caso a atualização seja bem-sucedida, NotFound caso a multa não seja encontrada.</returns>
-        /// <response code="204">Caso o status da multa seja atualizado para "Pago".</response>
+        /// <returns>IActionResult</returns>
+        /// <response code="200">Caso a multa seja paga com sucesso.</response>
         /// <response code="404">Caso a multa não seja encontrada.</response>
-        [HttpPut("{id}/Pagar")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        /// <response code="400">Caso a multa já tenha sido paga.</response>
+        [HttpPost("Pagar/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult MarcarMultaComoPaga(int id)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PagarMulta(int id)
         {
-            var multa = _context.Multas.FirstOrDefault(m => m.Id == id);
-
-            if (multa == null)
+            try
             {
-                return NotFound("Multa não encontrada.");
+                await _multaService.PagarMulta(id);
+                return Ok("Multa paga com sucesso.");
             }
-
-            if (multa.Status != StatusMulta.Pendente)
+            catch (NotFoundException ex)
             {
-                return BadRequest("A multa não está pendente.");
+                return NotFound(ex.Message);
             }
-
-            multa.Status = StatusMulta.Pago;
-            multa.FimMulta = DateTime.Now;
-
-            _context.SaveChanges();
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Cancela uma multa.
-        /// </summary>
-        /// <param name="id">ID da multa.</param>
-        /// <returns>NoContent caso o cancelamento seja bem-sucedido, NotFound caso a multa não seja encontrada.</returns>
-        /// <response code="204">Caso a multa seja cancelada.</response>
-        /// <response code="404">Caso a multa não seja encontrada.</response>
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult CancelarMulta(int id)
-        {
-            var multa = _context.Multas.FirstOrDefault(m => m.Id == id);
-
-            if (multa == null)
+            catch (BadRequestException ex)
             {
-                return NotFound("Multa não encontrada.");
+                return BadRequest(ex.Message);
             }
-
-            if (multa.Status != StatusMulta.Pendente)
-            {
-                return BadRequest("A multa não está pendente.");
-            }
-
-            multa.Status = StatusMulta.Cancelado;
-
-            _context.SaveChanges();
-
-            return NoContent();
         }
     }
 }
-
-

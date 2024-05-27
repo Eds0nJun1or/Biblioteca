@@ -5,18 +5,22 @@ namespace Biblioteca.Data.Dtos.Request
 {
     public class UpdateEmprestimoDto
     {
-        internal readonly int UsuarioId;
+        [Required(ErrorMessage = "ID do usuário é obrigatório")]
+        public int UsuarioId {  get; set; }
 
         [Required(ErrorMessage = "ID do empréstimo é obrigatório")]
-        public int Id { get; set; }
+        public int EmprestimoId { get; set; }
+
+        [Required(ErrorMessage = "ID do exemplar é obrigatório")]
+        public int ExemplarId { get; set; }
 
         [Required(ErrorMessage = "A data e hora do empréstimo é obrigatória")]
-        public DateTime DatahoraEmprestimo { get; set; }
+        public DateTime DataEmprestimo { get; set; }
 
         [Required(ErrorMessage = "A data prevista para devolução é obrigatória")]
         public DateTime DataPrevistaDevolucao { get; set; }
 
-        public DateOnly? DataDevolucao { get; set; }
+        public DateTime? DataDevolucao { get; set; }
 
         [Required(ErrorMessage = "O status do empréstimo é obrigatório")]
         public StatusEmprestimo Status { get; set; }

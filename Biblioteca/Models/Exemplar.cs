@@ -7,7 +7,7 @@ namespace Biblioteca.Models
     {
         [Key]
         [Required(ErrorMessage = "ID do exemplar é obrigatório")]
-        public int Id { get; set; }
+        public int ExemplarId { get; set; }
 
         [Required(ErrorMessage = "O ID do livro do exemplar é obrigatório")]
         public int LivroId { get; set; }
@@ -18,5 +18,7 @@ namespace Biblioteca.Models
         public Livro Livro { get; set; }
 
         public virtual ICollection<Emprestimo> Emprestimos { get; set; }
+
+        public virtual ICollection<Multa> Multas { get; set; }
     }
 }

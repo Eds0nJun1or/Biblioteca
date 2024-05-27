@@ -1,185 +1,201 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Biblioteca.Models;
-using Biblioteca.Data;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Biblioteca.Data.Dtos.Response;
 using Biblioteca.Data.Dtos.Request;
-using Biblioteca.Enums;
+using Biblioteca.Data.Dtos.Response;
+using Biblioteca.Interfaces;
+using Biblioteca.Services.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
 
 namespace Biblioteca.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class EmprestimoController : ControllerBase
     {
-        private readonly BibliotecaContext _context;
-        private readonly IMapper _mapper;
+        private readonly IEmprestimoService _emprestimoService;
 
-        public EmprestimoController(BibliotecaContext context, IMapper mapper)
+        public EmprestimoController(IEmprestimoService emprestimoService)
         {
-            _context = context;
-            _mapper = mapper;
+            _emprestimoService = emprestimoService;
         }
 
         /// <summary>
-        /// Adiciona um novo empréstimo de livro.
+        /// Cria um novo empréstimo com base nos dados fornecidos.
         /// </summary>
-        /// <param name="emprestimoDto">Objeto contendo os dados do empréstimo.</param>
-        /// <returns>IActionResult</returns>
-        /// <response code="201">Caso o empréstimo seja criado com sucesso.</response>
-        /// <response code="400">Caso haja algum erro na validação dos dados.</response>
-        /// <response code="404">Caso o livro ou o usuário não sejam encontrados.</response>
-        /// <response code="409">Caso o usuário já tenha o limite máximo de empréstimos.</response>
+        /// <param name="emprestimoDto">Objeto DTO contendo os dados do empréstimo a ser criado.</param>
+        /// <param name="funcionarioId">ID do funcionário responsável pela criação do empréstimo.</param>
+        /// <returns>Retorna o objeto de empréstimo criado.</returns>
+        /// <response code="201">Retorna o objeto de empréstimo criado e a URL para acessá-lo.</response>
+        /// <response code="404">Retorna mensagem de erro se o empréstimo não for encontrado.</response>
+        /// <response code="400">Retorna mensagem de erro se o limite de empréstimos for excedido ou se o exemplar não estiver disponível.</response>
+        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ReadEmprestimoDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> AdicionaEmprestimo([FromBody] CreateEmprestimoDto emprestimoDto)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ReadEmprestimoDto>> CreateEmprestimo(CreateEmprestimoDto emprestimoDto, int funcionarioId)
         {
-            var livro = await _context.Livros.FindAsync(emprestimoDto.ExemplarId);
-            var usuario = await _context.Usuarios.FindAsync(emprestimoDto.UsuarioId);
-
-            if (livro == null || usuario == null)
+            try
             {
-                return NotFound("Livro ou usuário não encontrado.");
+                var novoEmprestimo = await _emprestimoService.CreateEmprestimo(emprestimoDto, funcionarioId);
+                return CreatedAtAction(nameof(GetEmprestimoById), new { id = novoEmprestimo.EmprestimoId }, novoEmprestimo);
             }
-
-            int livrosEmprestados = await _context.Emprestimos
-                .Where(e => e.UsuarioId == usuario.Id && e.Status == StatusEmprestimo.Ativo)
-                .CountAsync();
-
-            if (livrosEmprestados >= 3)
+            catch (EmprestimoNotFoundException ex)
             {
-                return Conflict("O usuário já possui o limite máximo de 3 livros emprestados.");
+                return NotFound(ex.Message);
             }
-
-            var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
-            emprestimo.Livro = livro;
-            emprestimo.Usuario = usuario;
-            emprestimo.DatahoraEmprestimo = DateTime.UtcNow;
-
-            await _context.AddAsync(emprestimo);
-            await _context.SaveChangesAsync();
-
-            var emprestimoDtoResponse = _mapper.Map<ReadEmprestimoDto>(emprestimo);
-            return CreatedAtAction(nameof(RecuperaEmprestimoPorId), new { id = emprestimo.Id }, emprestimoDtoResponse);
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         /// <summary>
-        /// Consulta os empréstimos feitos por um usuário.
+        /// Obtém uma lista de todos os empréstimos.
+        /// </summary>
+        /// <returns>Retorna uma lista de objetos de empréstimo.</returns>
+        /// <response code="200">Retorna a lista de empréstimos.</response>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<ReadEmprestimoDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<ReadEmprestimoDto>>> GetEmprestimos()
+        {
+            var emprestimos = await _emprestimoService.GetEmprestimos();
+            return Ok(emprestimos);
+        }
+
+        /// <summary>
+        /// Obtém um empréstimo específico pelo ID.
+        /// </summary>
+        /// <param name="id">ID do empréstimo a ser obtido.</param>
+        /// <returns>Retorna o objeto de empréstimo solicitado.</returns>
+        /// <response code="200">Retorna o objeto de empréstimo solicitado.</response>
+        /// <response code="404">Retorna mensagem de erro se o empréstimo não for encontrado.</response>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ReadEmprestimoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ReadEmprestimoDto>> GetEmprestimoById(int id)
+        {
+            try
+            {
+                var emprestimo = await _emprestimoService.GetEmprestimoById(id);
+                return Ok(emprestimo);
+            }
+            catch (EmprestimoNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Obtém todos os empréstimos de um usuário específico.
         /// </summary>
         /// <param name="usuarioId">ID do usuário.</param>
-        /// <returns>Lista de empréstimos.</returns>
-        /// <response code="200">Caso o usuário seja encontrado e a consulta seja bem-sucedida.</response>
-        /// <response code="404">Caso o usuário não seja encontrado.</response>
+        /// <returns>Retorna uma lista de objetos de empréstimo do usuário.</returns>
+        /// <response code="200">Retorna a lista de empréstimos do usuário.</response>
+        /// <response code="404">Retorna mensagem de erro se o usuário não tiver empréstimos.</response>
         [HttpGet("LivrosEmprestados/{usuarioId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<ReadEmprestimoDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ConsultaLivrosEmprestadosUsuario(int usuarioId)
+        public async Task<ActionResult<IEnumerable<ReadEmprestimoDto>>> GetEmprestimosByUsuarioId(int usuarioId)
         {
-            var usuario = await _context.Usuarios.FindAsync(usuarioId);
-
-            if (usuario == null)
+            try
             {
-                return NotFound("Usuário não encontrado.");
+                var emprestimos = await _emprestimoService.GetEmprestimosByUsuarioId(usuarioId);
+                return Ok(emprestimos);
             }
-
-            var loans = await _context.Emprestimos
-                .Where(e => e.UsuarioId == usuarioId && e.Status == StatusEmprestimo.Ativo)
-                .Select(e => new {
-                    Id = e.Id,
-                    DatahoraEmprestimo = e.DatahoraEmprestimo,
-                    Exemplar = new { Id = e.ExemplarId }, 
-                    Livro = new { Id = e.Exemplar.LivroId } 
-                })
-                .ToListAsync();
-
-            if (loans.Count == 0)
+            catch (UsuarioNotFoundException ex)
             {
-                return NotFound("Nenhum empréstimo encontrado para este usuário.");
+                return NotFound(ex.Message);
             }
-
-            return Ok(loans);
-        }
-
-
-        /// <summary>
-        /// Recupera um empréstimo específico por ID.
-        /// </summary>
-        /// <param name="id">ID do empréstimo.</param>
-        /// <returns>Detalhes do empréstimo.</returns>
-        /// <response code="200">Caso o empréstimo seja encontrado.</response>
-        /// <response code="404">Caso o empréstimo não seja encontrado.</response>
-        [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> RecuperaEmprestimoPorId(int id)
-        {
-            var emprestimo = await _context.Emprestimos
-                .Include(e => e.Usuario)
-                .Include(e => e.Exemplar)
-                .Include(e => e.Exemplar.Livro)
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (emprestimo == null)
+            catch (Exception ex)
             {
-                return NotFound("Empréstimo não encontrado.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
-
-            var emprestimoDto = _mapper.Map<ReadEmprestimoDto>(emprestimo);
-
-            return Ok(emprestimoDto);
         }
 
         /// <summary>
-        /// Atualiza um empréstimo por ID.
+        /// Atualiza um empréstimo existente.
         /// </summary>
-        /// <param name="id">ID do empréstimo.</param>
+        /// <param name="id">ID do empréstimo a ser atualizado.</param>
         /// <param name="emprestimoDto">Objeto contendo os dados atualizados do empréstimo.</param>
-        /// <returns>NoContent caso a atualização seja bem-sucedida, NotFound caso o empréstimo não seja encontrado.</returns>
-        /// <response code="204">Caso a atualização seja realizada com sucesso.</response>
-        /// <response code="404">Caso o empréstimo não seja encontrado.</response>
-        /// <response code="409">Caso o usuário já tenha o limite máximo de empréstimos.</response>
+        /// <param name="funcionarioId">ID do funcionário responsável pela atualização.</param>
+        /// <returns>Retorna NoContent se a atualização for bem-sucedida.</returns>
+        /// <response code="204">Indica que a atualização foi bem-sucedida.</response>
+        /// <response code="400">Retorna mensagem de erro se o ID do empréstimo não corresponder ao ID fornecido.</response>
+        /// <response code="404">Retorna mensagem de erro se o empréstimo não for encontrado.</response>
+        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> AtualizaEmprestimo(int id, [FromBody] UpdateEmprestimoDto emprestimoDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateEmprestimo(int id, UpdateEmprestimoDto emprestimoDto, int funcionarioId, IMapper _mapper)
         {
-            if (id != emprestimoDto.Id)
+            if (id != emprestimoDto.EmprestimoId)
             {
-                return BadRequest("O ID do empréstimo não corresponde ao ID fornecido.");
+                return BadRequest("ID do empréstimo não corresponde ao ID fornecido.");
             }
 
-            var emprestimo = await _context.Emprestimos
-                .Include(e => e.Usuario)
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (emprestimo == null)
+            try
             {
-                return NotFound("Empréstimo não encontrado.");
+                var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
+                await _emprestimoService.Atualizar(emprestimo, id, funcionarioId);
+                return NoContent();
             }
-
-            if (emprestimo.UsuarioId != emprestimoDto.UsuarioId)
+            catch (EmprestimoNotFoundException ex)
             {
-                int livrosEmprestadosNovoUsuario = await _context.Emprestimos
-                    .Where(e => e.UsuarioId == emprestimoDto.UsuarioId && e.Status == StatusEmprestimo.Ativo)
-                    .CountAsync();
-
-                if (livrosEmprestadosNovoUsuario >= 3)
-                {
-                    return BadRequest("O novo usuário já possui o limite máximo de 3 livros emprestados.");
-                }
+                return NotFound(ex.Message);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
 
-            _mapper.Map(emprestimoDto, emprestimo);
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+        /// <summary>
+        /// Devolve um empréstimo pelo ID do funcionário.
+        /// </summary>
+        /// <param name="funcionarioId">ID do funcionário.</param>
+        /// <param name="emprestimoId">ID do empréstimo a ser devolvido.</param>
+        /// <returns>Retorna NoContent se a devolução for bem-sucedida.</returns>
+        /// <response code="204">Indica que a devolução foi bem-sucedida.</response>
+        /// <response code="404">Retorna mensagem de erro se o empréstimo ou usuário não for encontrado.</response>
+        /// <response code="400">Retorna mensagem de erro se o empréstimo já estiver devolvido.</response>
+        [HttpPost("devolver/{funcionarioId}/{emprestimoId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DevolverEmprestimo(int funcionarioId, int emprestimoId)
+        {
+            try
+            {
+                await _emprestimoService.DevolverEmprestimo(funcionarioId, emprestimoId);
+                return NoContent();
+            }
+            catch (EmprestimoNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (EmprestimoJaDevolvidoException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
     }
 }
-

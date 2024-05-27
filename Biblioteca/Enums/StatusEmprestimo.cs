@@ -4,11 +4,13 @@ namespace Biblioteca.Enums
 {
     public enum StatusEmprestimo
     {
-        [Description("Ativo")]
-        Ativo = 0,
-        [Description("Encerrado")]
-        Encerrado = 1,
+        [Description("EmAndamento")]
+        EmAndamento = 0,
+        [Description("Renovado")]
+        Renovado = 1,
+        [Description("Devolvido")]
+        Devolvido = 2,
         [Description("Atrasado")]
-        Atrasado = 2
+        Atrasado = 3
     }
 }

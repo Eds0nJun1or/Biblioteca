@@ -1,4 +1,5 @@
 ﻿using Biblioteca.Data;
+using Biblioteca.Interfaces;
 using Biblioteca.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,7 @@ namespace Biblioteca.Services
 
         public async Task<Usuario> BuscarPorId(int id)
         {
-            return await _dbContext.Usuarios.FirstOrDefaultAsync(x => x.Id == id);
+            return await _dbContext.Usuarios.FirstOrDefaultAsync(x => x.UsuarioId == id);
         }
 
         public async Task<List<Usuario>> BuscarUsuarios()

@@ -24,34 +24,38 @@ namespace Biblioteca.Migrations
 
             modelBuilder.Entity("Biblioteca.Models.Emprestimo", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("EmprestimoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("EmprestimoId"));
 
-                    b.Property<DateOnly?>("DataDevolucao")
-                        .HasColumnType("date");
-
-                    b.Property<DateTime>("DataPrevistaDevolucao")
+                    b.Property<DateTime?>("DataDevolucao")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime>("DatahoraEmprestimo")
+                    b.Property<DateTime>("DataEmprestimo")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("DataPrevistaDevolucao")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("ExemplarId")
                         .HasColumnType("int");
 
+                    b.Property<int>("FuncionarioId")
+                        .HasColumnType("int");
+
                     b.Property<int>("LivroId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("EmprestimoId");
 
                     b.HasIndex("ExemplarId");
 
@@ -64,11 +68,11 @@ namespace Biblioteca.Migrations
 
             modelBuilder.Entity("Biblioteca.Models.Exemplar", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ExemplarId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ExemplarId"));
 
                     b.Property<int>("LivroId")
                         .HasColumnType("int");
@@ -76,20 +80,60 @@ namespace Biblioteca.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("ExemplarId");
 
                     b.HasIndex("LivroId");
 
                     b.ToTable("Exemplares");
                 });
 
-            modelBuilder.Entity("Biblioteca.Models.Livro", b =>
+            modelBuilder.Entity("Biblioteca.Models.Funcionario", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("FuncionarioId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("FuncionarioId"));
+
+                    b.Property<string>("Cpf")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateOnly>("DataNascimento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("NomeFuncionario")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Senha")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Telefone")
+                        .IsRequired()
+                        .HasMaxLength(11)
+                        .HasColumnType("varchar(11)");
+
+                    b.HasKey("FuncionarioId");
+
+                    b.ToTable("Funcionarios");
+                });
+
+            modelBuilder.Entity("Biblioteca.Models.Livro", b =>
+                {
+                    b.Property<int>("LivroId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("LivroId"));
 
                     b.Property<string>("Autor")
                         .IsRequired()
@@ -120,23 +164,29 @@ namespace Biblioteca.Migrations
                     b.Property<float>("Valor")
                         .HasColumnType("float");
 
-                    b.HasKey("Id");
+                    b.HasKey("LivroId");
 
                     b.ToTable("Livros");
                 });
 
             modelBuilder.Entity("Biblioteca.Models.Multa", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("MultaId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MultaId"));
 
                     b.Property<int>("DiasAtrasados")
                         .HasColumnType("int");
 
+                    b.Property<int>("DiasAtrasoMaximo")
+                        .HasColumnType("int");
+
                     b.Property<int>("EmprestimoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExemplarId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("FimMulta")
@@ -148,23 +198,34 @@ namespace Biblioteca.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<float>("Valor")
-                        .HasColumnType("float");
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<double>("Valor")
+                        .HasColumnType("double");
 
-                    b.HasIndex("EmprestimoId");
+                    b.HasKey("MultaId");
+
+                    b.HasIndex("EmprestimoId")
+                        .IsUnique();
+
+                    b.HasIndex("ExemplarId");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Multas");
                 });
 
             modelBuilder.Entity("Biblioteca.Models.Usuario", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("UsuarioId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("UsuarioId"));
+
+                    b.Property<bool>("Bloqueado")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Cpf")
                         .IsRequired()
@@ -175,11 +236,17 @@ namespace Biblioteca.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("HistoricoAtrasos")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("Id");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("UsuarioId");
 
                     b.ToTable("Usuarios");
                 });
@@ -199,7 +266,7 @@ namespace Biblioteca.Migrations
                         .IsRequired();
 
                     b.HasOne("Biblioteca.Models.Usuario", "Usuario")
-                        .WithMany()
+                        .WithMany("Emprestimos")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -225,22 +292,49 @@ namespace Biblioteca.Migrations
             modelBuilder.Entity("Biblioteca.Models.Multa", b =>
                 {
                     b.HasOne("Biblioteca.Models.Emprestimo", "Emprestimo")
-                        .WithMany()
-                        .HasForeignKey("EmprestimoId")
+                        .WithOne("Multa")
+                        .HasForeignKey("Biblioteca.Models.Multa", "EmprestimoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Biblioteca.Models.Exemplar", null)
+                        .WithMany("Multas")
+                        .HasForeignKey("ExemplarId");
+
+                    b.HasOne("Biblioteca.Models.Usuario", "Usuario")
+                        .WithMany("Multas")
+                        .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Emprestimo");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Biblioteca.Models.Emprestimo", b =>
+                {
+                    b.Navigation("Multa")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Biblioteca.Models.Exemplar", b =>
                 {
                     b.Navigation("Emprestimos");
+
+                    b.Navigation("Multas");
                 });
 
             modelBuilder.Entity("Biblioteca.Models.Livro", b =>
                 {
                     b.Navigation("Exemplares");
+                });
+
+            modelBuilder.Entity("Biblioteca.Models.Usuario", b =>
+                {
+                    b.Navigation("Emprestimos");
+
+                    b.Navigation("Multas");
                 });
 #pragma warning restore 612, 618
         }

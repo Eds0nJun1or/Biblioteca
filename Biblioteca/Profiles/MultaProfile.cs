@@ -11,8 +11,6 @@ namespace Biblioteca.Profiles
         {
             CreateMap<CreateMultaDto, Multa>();
             CreateMap<UpdateMultaDto, Multa>();
-            CreateMap<Multa, UpdateMultaDto>();
-            // Criação de mapeamento para ReadMultaDto
             CreateMap<Multa, ReadMultaDto>()
                 .ForMember(dest => dest.Emprestimo, opt => opt.Ignore());
         }
