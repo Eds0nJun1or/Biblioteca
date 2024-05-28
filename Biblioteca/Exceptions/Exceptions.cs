@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using Biblioteca.Data.Dtos.Response;
+using System.Runtime.Serialization;
 
 namespace Biblioteca.Services.Exceptions
 {
@@ -54,6 +55,7 @@ namespace Biblioteca.Services.Exceptions
 
         protected UsuarioSemPermissaoException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
+       
         }
     }
 }

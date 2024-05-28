@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Biblioteca.Models;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Biblioteca.Data.Dtos.Request
 {
@@ -18,5 +20,8 @@ namespace Biblioteca.Data.Dtos.Request
         [Required]
         [StringLength(11)]
         public string Telefone { get; set; }
+
+        [JsonIgnore]
+        public List<Emprestimo> Emprestimos { get; set; } = new List<Emprestimo>();
     }
 }

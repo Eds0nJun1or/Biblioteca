@@ -23,5 +23,6 @@ namespace Biblioteca.Data.Dtos.Request
         public DateTime? DataDevolucao { get; set; }
 
         [Required(ErrorMessage = "O status do empréstimo é obrigatório")]
-        public StatusEmprestimo Status { get; set; }    }
+        public StatusEmprestimo Status { get; set; }    
+    }
 }

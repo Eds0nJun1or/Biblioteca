@@ -34,9 +34,15 @@ namespace Biblioteca.Services
                 throw new NotFoundException("Empréstimo não encontrado.");
             }
 
+            // Calcular a multa
+            double valorLivro = emprestimo.Exemplar.Livro.Valor; // Supondo que há uma propriedade Valor no modelo Livro
+            double valorMulta = multaDto.DiasAtrasados * 1.0; // R$ 1 por dia
+            valorMulta = Math.Min(valorMulta, valorLivro * 2); // Não exceder o dobro do valor do livro
+
             var multa = _mapper.Map<Multa>(multaDto);
             multa.Emprestimo = emprestimo;
             multa.Usuario = emprestimo.Usuario;
+            multa.Valor = valorMulta;
             multa.InicioMulta = DateTime.UtcNow;
             multa.Status = StatusMulta.Pendente;
 
@@ -45,6 +51,7 @@ namespace Biblioteca.Services
 
             return multa.MultaId;
         }
+
 
         public async Task<ReadMultaDto> RecuperarMultaPorId(int multaId)
         {

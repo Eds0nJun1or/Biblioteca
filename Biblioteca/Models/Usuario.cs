@@ -27,9 +27,6 @@ namespace Biblioteca.Models
         public bool Bloqueado { get; set; }
 
         [JsonIgnore]
-        public virtual ICollection<Emprestimo> Emprestimos { get; set; }
-
-        [JsonIgnore]
-        public virtual ICollection<Multa> Multas { get; set; }
+        public virtual ICollection<Emprestimo> Emprestimos { get; set; } = new List<Emprestimo>();
     }
 }

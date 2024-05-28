@@ -1,5 +1,4 @@
 ﻿using Biblioteca.Enums;
-using System.ComponentModel.DataAnnotations;
 
 namespace Biblioteca.Data.Dtos.Reponse
 {
