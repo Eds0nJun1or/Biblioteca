@@ -7,9 +7,7 @@ namespace Biblioteca.Enums
         [Description("Disponivel")]
         Disponivel = 0,
         [Description("Emprestado")]
-        Emprestado = 1,
-        [Description("Reservado")]
-        Reservado = 2
+        Emprestado = 1
     }
 }
 

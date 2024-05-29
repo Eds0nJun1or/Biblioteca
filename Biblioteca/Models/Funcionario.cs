@@ -1,12 +1,13 @@
 ﻿using Biblioteca.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Biblioteca.Models
 {
     public class Funcionario
     {
         [Key]
-        [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int FuncionarioId { get; set; }
 
         [Required(ErrorMessage = "O campo 'CPF' é obrigatório.")]

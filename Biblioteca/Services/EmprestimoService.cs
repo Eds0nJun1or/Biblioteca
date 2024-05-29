@@ -109,9 +109,9 @@ namespace Biblioteca.Services
                 throw new InvalidOperationException("Exemplar não disponível para empréstimo.");
             }
 
-            bool hasPendingMultas = usuario.Emprestimos.Any(e => e.Multas.Any(m => m.Status == StatusMulta.Pendente));
+            bool multasPendentes = usuario.Emprestimos.Any(e => e.Multas.Any(m => m.Status == StatusMulta.Pendente));
 
-            if (hasPendingMultas && usuario.Emprestimos.Count(e => e.DataDevolucao == null) >= 1)
+            if (multasPendentes && usuario.Emprestimos.Count(e => e.DataDevolucao == null) >= 1)
             {
                 throw new InvalidOperationException("Usuário com multas pendentes só pode pegar um livro por vez.");
             }
@@ -123,9 +123,9 @@ namespace Biblioteca.Services
                 throw new InvalidOperationException("Limite de empréstimos ativos do usuário atingido.");
             }
 
-            bool hasLateReturns = usuario.Emprestimos.Any(e => e.Status == StatusEmprestimo.Atrasado);
+            bool historicoAtrasos = usuario.Emprestimos.Any(e => e.Status == StatusEmprestimo.Atrasado);
 
-            if (hasLateReturns)
+            if (historicoAtrasos)
             {
                 throw new InvalidOperationException("Usuário tem histórico de atrasos.");
             }
@@ -218,31 +218,16 @@ namespace Biblioteca.Services
             return emprestimoDto;
         }
 
-        public async Task<bool> DeleteEmprestimo(int id)
-        {
-            var emprestimo = await _dbContext.Emprestimos.FindAsync(id);
-
-            if (emprestimo == null)
-            {
-                return false;
-            }
-
-            _dbContext.Emprestimos.Remove(emprestimo);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
-
         public async Task<bool> FinalizarEmprestimo(int id)
         {
-            var emprestimo = await BuscarPorId(id);
+            var emprestimo = await _dbContext.Emprestimos.FindAsync(id);
 
             if (emprestimo == null)
             {
                 throw new ArgumentException($"Empréstimo para o ID: {id} não foi encontrado no banco de dados.");
             }
 
-            if (await VerificarMulta(id))
+            if (await VerificarMulta(id)) // Método que verifica multas pendentes
             {
                 throw new InvalidOperationException("Empréstimo possui multas pendentes.");
             }
@@ -264,6 +249,7 @@ namespace Biblioteca.Services
 
             return true;
         }
+
 
         public async Task<IEnumerable<ReadEmprestimoDto>> GetEmprestimosByUsuarioId(int usuarioId)
         {

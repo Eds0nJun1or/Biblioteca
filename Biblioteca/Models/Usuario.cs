@@ -1,5 +1,6 @@
 ﻿using Biblioteca.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace Biblioteca.Models
@@ -7,7 +8,7 @@ namespace Biblioteca.Models
     public class Usuario
     {
         [Key]
-        [Required(ErrorMessage = "ID do usuário é obrigatório")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int UsuarioId { get; set; }
 
         [Required(ErrorMessage = "O nome do usuário é obrigatório")]
@@ -22,9 +23,6 @@ namespace Biblioteca.Models
         public string Email { get; set; }
 
         public StatusUsuario Status { get; set; } = StatusUsuario.Ativo;
-
-        [JsonIgnore]
-        public bool Bloqueado { get; set; }
 
         [JsonIgnore]
         public virtual ICollection<Emprestimo> Emprestimos { get; set; } = new List<Emprestimo>();

@@ -1,12 +1,13 @@
 ﻿using Biblioteca.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Biblioteca.Models
 {
     public class Multa
     {
         [Key]
-        [Required(ErrorMessage = "ID da multa é obrigatório.")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MultaId { get; set; }
 
         [Required(ErrorMessage = "O ID do empréstimo da multa é obrigatório.")]

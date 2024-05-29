@@ -1,13 +1,14 @@
 ﻿using Biblioteca.Enums;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Biblioteca.Models
 {
     public class Emprestimo
     {
         [Key]
-        [Required(ErrorMessage = "ID do empréstimo é obrigatório.")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int EmprestimoId { get; set; }
 
         [Required(ErrorMessage = "O ID do usuário do empréstimo é obrigatório.")]

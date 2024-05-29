@@ -25,6 +25,18 @@ namespace Biblioteca.Services
 
         public async Task<Usuario> Adicionar(Usuario usuario)
         {
+            // Verifica se já existe um usuário com o mesmo CPF
+            if (_dbContext.Usuarios.Any(u => u.Cpf == usuario.Cpf))
+            {
+                throw new InvalidOperationException("Já existe um usuário com este CPF.");
+            }
+
+            // Verifica se já existe um usuário com o mesmo e-mail
+            if (_dbContext.Usuarios.Any(u => u.Email == usuario.Email))
+            {
+                throw new InvalidOperationException("Já existe um usuário com este e-mail.");
+            }
+
             await _dbContext.Usuarios.AddAsync(usuario);
             await _dbContext.SaveChangesAsync();
 

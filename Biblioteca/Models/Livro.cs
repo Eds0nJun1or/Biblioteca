@@ -1,12 +1,13 @@
 ﻿using Biblioteca.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Biblioteca.Models;
 
 public class Livro
 {
     [Key]
-    [Required(ErrorMessage = "ID do livro é obrigatório")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int LivroId { get; set; }
 
     [Required(ErrorMessage = "O título do livro é obrigatório")]

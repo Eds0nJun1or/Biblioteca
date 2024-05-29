@@ -15,7 +15,7 @@ namespace Biblioteca.Data.Dtos.Request
         public int EmprestimoId { get; set; }
 
         [Required(ErrorMessage = "O valor da multa é obrigatório")]
-        public float Valor { get; set; }
+        public double Valor { get; set; }
 
         [Required(ErrorMessage = "A data de início da multa é obrigatória")]
         public DateTime InicioMulta { get; set; }

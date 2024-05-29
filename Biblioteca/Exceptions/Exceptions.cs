@@ -1,5 +1,4 @@
-﻿using Biblioteca.Data.Dtos.Response;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace Biblioteca.Services.Exceptions
 {

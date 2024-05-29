@@ -201,5 +201,44 @@ namespace Biblioteca.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        /// <summary>
+        /// Finaliza um empréstimo pelo ID.
+        /// </summary>
+        /// <param name="id">ID do empréstimo a ser finalizado.</param>
+        /// <returns>Retorna NoContent se a finalização for bem-sucedida.</returns>
+        /// <response code="204">Indica que a finalização foi bem-sucedida.</response>
+        /// <response code="400">Retorna mensagem de erro se o empréstimo possui multas pendentes.</response>
+        /// <response code="404">Retorna mensagem de erro se o empréstimo não for encontrado.</response>
+        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
+        [HttpPost("finalizar/{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> FinalizarEmprestimo(int id)
+        {
+            try
+            {
+                var result = await _emprestimoService.FinalizarEmprestimo(id);
+                if (!result)
+                {
+                    return NotFound("Empréstimo não encontrado.");
+                }
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
     }
 }

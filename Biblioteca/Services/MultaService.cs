@@ -69,7 +69,9 @@ namespace Biblioteca.Services
             }
 
             var multaDto = _mapper.Map<ReadMultaDto>(multa);
+            multaDto.Id = multa.MultaId;
             multaDto.NomeUsuario = multa.Emprestimo.Usuario.Nome;
+            multaDto.UsuarioId = multa.Emprestimo.Usuario.UsuarioId;
             multaDto.TituloLivro = multa.Emprestimo.Exemplar.Livro.Nome;
 
             return multaDto;
@@ -92,45 +94,41 @@ namespace Biblioteca.Services
         {
             var multas = await _context.Multas
                 .Include(m => m.Emprestimo)
-                .ThenInclude(e => e.Usuario)
+                    .ThenInclude(e => e.Usuario)
                 .Include(m => m.Emprestimo)
-                .ThenInclude(e => e.Exemplar)
-                .ThenInclude(ex => ex.Livro)
+                    .ThenInclude(e => e.Exemplar)
+                        .ThenInclude(ex => ex.Livro)
                 .ToListAsync();
 
-            if (multas == null)
+            if (multas == null || !multas.Any())
             {
-                throw new NullReferenceException("Lista de multas nula.");
+                throw new NotFoundException("Nenhuma multa encontrada.");
             }
 
-            var multasDto = _mapper.Map<List<ReadMultaDto>>(multas);
+            var multasDto = new List<ReadMultaDto>();
 
-            foreach (var multaDto in multasDto)
+            foreach (var multa in multas)
             {
-                var usuario = await _context.Usuarios.FindAsync(multaDto.UsuarioId);
-                if (usuario == null)
+                var multaDto = new ReadMultaDto
                 {
-                    throw new NullReferenceException($"Usuário com ID {multaDto.UsuarioId} não encontrado.");
-                }
+                    Id = multa.MultaId,
+                    EmprestimoId = multa.EmprestimoId,
+                    Valor = multa.Valor,
+                    InicioMulta = multa.InicioMulta,
+                    FimMulta = multa.FimMulta,
+                    DiasAtrasados = multa.DiasAtrasados,
+                    Status = multa.Status,
+                    NomeUsuario = multa.Emprestimo.Usuario.Nome,
+                    TituloLivro = multa.Emprestimo.Exemplar.Livro.Nome,
+                    UsuarioId = multa.Emprestimo.Usuario.UsuarioId
+                };
 
-                var exemplar = await _context.Exemplares.FindAsync(multaDto.Emprestimo.ExemplarId);
-                if (exemplar == null)
-                {
-                    throw new NullReferenceException($"Exemplar com ID {multaDto.Emprestimo.ExemplarId} não encontrado.");
-                }
-
-                var livro = await _context.Livros.FindAsync(exemplar.LivroId);
-                if (livro == null)
-                {
-                    throw new NullReferenceException($"Livro com ID {exemplar.LivroId} não encontrado.");
-                }
-
-                multaDto.NomeUsuario = usuario.Nome;
-                multaDto.TituloLivro = livro.Nome;
+                multasDto.Add(multaDto);
             }
 
             return multasDto;
         }
+
 
         public async Task PagarMulta(int multaId)
         {

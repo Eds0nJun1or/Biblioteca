@@ -70,5 +70,7 @@ namespace Biblioteca.Interfaces
         /// <param name="emprestimoId">ID do empréstimo a ser devolvido.</param>
         /// <returns>Task representando a operação assíncrona.</returns>
         Task DevolverEmprestimo(int funcionarioId, int usuarioId, int emprestimoId);
+
+        Task<bool> FinalizarEmprestimo(int id);
     }
 }

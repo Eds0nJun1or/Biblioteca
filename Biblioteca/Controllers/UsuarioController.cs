@@ -29,8 +29,15 @@ namespace Biblioteca.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Usuario>> Cadastrar([FromBody] Usuario usuario)
         {
-            usuario = await _usuarioRepository.Adicionar(usuario);
-            return CreatedAtAction(nameof(BuscarPorId), new { id = usuario.UsuarioId }, usuario);
+            try
+            {
+                usuario = await _usuarioRepository.Adicionar(usuario);
+                return CreatedAtAction(nameof(BuscarPorId), new { id = usuario.UsuarioId }, usuario);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         /// <summary>
