@@ -26,9 +26,8 @@ namespace Biblioteca.Services
             // Verificar se o empréstimo existe e está atrasado
             var emprestimo = await _context.Emprestimos
                 .Include(e => e.Usuario)
-                .Include(e => e.Exemplar)
-                    .ThenInclude(ex => ex.Livro)
-                .FirstOrDefaultAsync(e => e.EmprestimoId == multaDto.EmprestimoId && e.Status == StatusEmprestimo.Devolvido);
+                .Include(e => e.Exemplar.Livro)
+                .FirstOrDefaultAsync(e => e.EmprestimoId == multaDto.EmprestimoId || e.Status == StatusEmprestimo.Devolvido);
 
             if (emprestimo == null)
             {
@@ -57,8 +56,6 @@ namespace Biblioteca.Services
 
             return multa.MultaId;
         }
-
-
 
         public async Task<ReadMultaDto> RecuperarMultaPorId(int multaId)
         {
@@ -156,6 +153,7 @@ namespace Biblioteca.Services
 
             multa.Status = StatusMulta.Paga;
             multa.Emprestimo.Usuario.Status = StatusUsuario.Ativo;
+            multa.FimMulta = DateTime.Now;
 
             await _context.SaveChangesAsync();
         }
