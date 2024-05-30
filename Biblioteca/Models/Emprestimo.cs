@@ -12,7 +12,7 @@ namespace Biblioteca.Models
         public int EmprestimoId { get; set; }
 
         [Required(ErrorMessage = "O ID do usuário do empréstimo é obrigatório.")]
-        public int UsuarioId { get; set; }
+       public int UsuarioId { get; set; }
 
         [Required(ErrorMessage = "O ID do exemplar do empréstimo é obrigatório.")]
         public int ExemplarId { get; set; }
@@ -37,11 +37,10 @@ namespace Biblioteca.Models
         public Exemplar Exemplar { get; set; }
 
         [JsonIgnore]
-        public Livro Livro { get; set; }
-
-        [JsonIgnore]
         public int LivroId { get; set; }
 
         public virtual ICollection<Multa> Multas { get; set; }
+
     }
 }
+

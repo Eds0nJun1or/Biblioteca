@@ -77,8 +77,7 @@ namespace Biblioteca.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Bloqueado = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -93,7 +92,8 @@ namespace Biblioteca.Migrations
                     ExemplarId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     LivroId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -133,12 +133,6 @@ namespace Biblioteca.Migrations
                         principalColumn: "ExemplarId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Emprestimos_Livros_LivroId",
-                        column: x => x.LivroId,
-                        principalTable: "Livros",
-                        principalColumn: "LivroId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Emprestimos_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
@@ -159,8 +153,7 @@ namespace Biblioteca.Migrations
                     FimMulta = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     DiasAtrasados = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    UsuarioId = table.Column<int>(type: "int", nullable: false),
-                    ExemplarId = table.Column<int>(type: "int", nullable: true)
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -171,11 +164,6 @@ namespace Biblioteca.Migrations
                         principalTable: "Emprestimos",
                         principalColumn: "EmprestimoId",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Multas_Exemplares_ExemplarId",
-                        column: x => x.ExemplarId,
-                        principalTable: "Exemplares",
-                        principalColumn: "ExemplarId");
                     table.ForeignKey(
                         name: "FK_Multas_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
@@ -191,11 +179,6 @@ namespace Biblioteca.Migrations
                 column: "ExemplarId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Emprestimos_LivroId",
-                table: "Emprestimos",
-                column: "LivroId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Emprestimos_UsuarioId",
                 table: "Emprestimos",
                 column: "UsuarioId");
@@ -209,11 +192,6 @@ namespace Biblioteca.Migrations
                 name: "IX_Multas_EmprestimoId",
                 table: "Multas",
                 column: "EmprestimoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Multas_ExemplarId",
-                table: "Multas",
-                column: "ExemplarId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Multas_UsuarioId",

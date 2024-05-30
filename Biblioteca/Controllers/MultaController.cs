@@ -95,15 +95,15 @@ namespace Biblioteca.Controllers
             }
         }
 
-            /// <summary>
-            /// Paga uma multa.
-            /// </summary>
-            /// <param name="id">ID da multa.</param>
-            /// <returns>IActionResult</returns>
-            /// <response code="200">Caso a multa seja paga com sucesso.</response>
-            /// <response code="404">Caso a multa não seja encontrada.</response>
-            /// <response code="400">Caso a multa já tenha sido paga.</response>
-            [HttpPost("Pagar/{id}")]
+        /// <summary>
+        /// Paga uma multa.
+        /// </summary>
+        /// <param name="id">ID da multa.</param>
+        /// <returns>IActionResult</returns>
+        /// <response code="200">Caso a multa seja paga com sucesso.</response>
+        /// <response code="404">Caso a multa não seja encontrada.</response>
+        /// <response code="400">Caso a multa já tenha sido paga.</response>
+        [HttpPost("Pagar/{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

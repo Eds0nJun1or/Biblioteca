@@ -10,7 +10,7 @@ namespace Biblioteca.Data.Dtos.Request
         public string Nome { get; set; }
 
         [Required]
-        [StringLength(11)]
+        [RegularExpression(@"^\d{11}$")]
         public string Cpf { get; set; }
 
         [Required]

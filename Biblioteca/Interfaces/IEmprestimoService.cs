@@ -71,6 +71,13 @@ namespace Biblioteca.Interfaces
         /// <returns>Task representando a operação assíncrona.</returns>
         Task DevolverEmprestimo(int funcionarioId, int usuarioId, int emprestimoId);
 
-        Task<bool> FinalizarEmprestimo(int id);
+        /// <summary>
+        /// Renova um empréstimo existente.
+        /// </summary>
+        /// <param name="renovacaoDto">Objeto contendo os dados de renovação do empréstimo.</param>
+        /// <param name="emprestimoId">ID do empréstimo a ser renovado.</param>
+        /// <param name="funcionarioId">ID do funcionário responsável pela renovação.</param>
+        /// <returns>Retorna o empréstimo renovado.</returns>
+        Task<Emprestimo> RenovarEmprestimo(Emprestimo renovacaoDto, int emprestimoId, int funcionarioId);
     }
 }

@@ -19,7 +19,5 @@ namespace Biblioteca.Models
         public Livro Livro { get; set; }
 
         public virtual ICollection<Emprestimo> Emprestimos { get; set; }
-
-        public virtual ICollection<Multa> Multas { get; set; }
     }
 }

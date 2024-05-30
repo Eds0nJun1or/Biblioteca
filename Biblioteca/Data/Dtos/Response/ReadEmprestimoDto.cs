@@ -13,6 +13,6 @@ namespace Biblioteca.Data.Dtos.Response
         public StatusEmprestimo Status { get; set; }
         public string NomeUsuario { get; set; }
         public string TituloExemplar { get; set; }
-        public bool? Multa { get; set; }
+        public bool Multa { get; set; }
     }
 }

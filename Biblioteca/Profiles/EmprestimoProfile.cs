@@ -10,6 +10,7 @@ public class EmprestimoProfile : Profile
         CreateMap<CreateEmprestimoDto, Emprestimo>();
         CreateMap<Emprestimo, ReadEmprestimoDto>();
         CreateMap<UpdateEmprestimoDto, Emprestimo>();
+        CreateMap<UpdateRenovacaoDto, Emprestimo>();
     }
 }
 

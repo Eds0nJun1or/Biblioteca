@@ -23,15 +23,21 @@ namespace Biblioteca.Services
 
         public async Task<int> AdicionarMulta(CreateMultaDto multaDto)
         {
+            // Verificar se o empréstimo existe e está atrasado
             var emprestimo = await _context.Emprestimos
                 .Include(e => e.Usuario)
                 .Include(e => e.Exemplar)
                     .ThenInclude(ex => ex.Livro)
-                .FirstOrDefaultAsync(e => e.EmprestimoId == multaDto.EmprestimoId);
+                .FirstOrDefaultAsync(e => e.EmprestimoId == multaDto.EmprestimoId && e.Status == StatusEmprestimo.Devolvido);
 
             if (emprestimo == null)
             {
-                throw new NotFoundException("Empréstimo não encontrado.");
+                throw new Exception("Empréstimo não encontrado ou não possui exemplar associado.");
+            }
+
+            if (emprestimo.Exemplar == null)
+            {
+                throw new Exception("Empréstimo encontrado, mas não possui exemplar associado.");
             }
 
             // Calcular a multa
@@ -51,6 +57,7 @@ namespace Biblioteca.Services
 
             return multa.MultaId;
         }
+
 
 
         public async Task<ReadMultaDto> RecuperarMultaPorId(int multaId)

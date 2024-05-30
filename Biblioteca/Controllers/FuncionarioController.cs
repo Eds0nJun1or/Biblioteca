@@ -73,7 +73,7 @@ namespace Biblioteca.Controllers
               issuer: "Biblioteca",
               audience: "API",
               claims: claims,
-              expires: DateTime.Now.AddMinutes(5),
+              expires: DateTime.Now.AddMinutes(20),
               signingCredentials: new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_chaveSecreta)),
                 SecurityAlgorithms.HmacSha256)
@@ -124,34 +124,29 @@ namespace Biblioteca.Controllers
         /// <summary>
         /// Cria um novo funcionário.
         /// </summary>
-        /// <param name="funcionarioDto">Objeto DTO contendo os dados do novo funcionário.</param>
-        /// <returns>O novo funcionário criado.</returns>
-        /// <response code="201">Retorna o novo funcionário criado.</response>
-        /// <response code="400">Retorna mensagem de erro se os dados forem inválidos.</response>
+        /// <param name="funcionario">Objeto contendo os dados do funcionário a ser criado.</param>
+        /// <returns>Retorna o objeto do funcionário criado.</returns>
+        /// <response code="201">Retorna o objeto do funcionário criado e a URL para acessá-lo.</response>
+        /// <response code="400">Retorna mensagem de erro se algum dado duplicado for encontrado.</response>
+        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
         [HttpPost]
         [ProducesResponseType(typeof(Funcionario), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CriarFuncionarioAsync([FromBody] CreateFuncionarioDto funcionarioDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CriarFuncionario([FromBody] Funcionario funcionario)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var funcionario = _mapper.Map<Funcionario>(funcionarioDto);
-
             try
             {
-                await _funcionarioService.CriarFuncionarioAsync(funcionario);
-
-                return CreatedAtRoute(
-                    nameof(BuscarFuncionarioPorIdAsync),
-                    new { funcionarioId = funcionario.FuncionarioId },
-                    funcionario);
+                var novoFuncionario = await _funcionarioService.CriarFuncionarioAsync(funcionario);
+                return CreatedAtRoute("GetFuncionarioById", new { id = novoFuncionario.FuncionarioId }, novoFuncionario);
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Erro interno: {ex.Message}");
             }
         }
 
@@ -178,26 +173,27 @@ namespace Biblioteca.Controllers
 
             if (funcionarioId != funcionarioDto.FuncionarioId)
             {
-                return BadRequest();
+                return BadRequest("O ID do funcionário na URL não corresponde ao ID fornecido no corpo da solicitação.");
             }
 
             var funcionario = await _funcionarioService.BuscarFuncionarioPorIdAsync(funcionarioId);
 
             if (funcionario == null)
             {
-                return NotFound();
+                return NotFound("Funcionário não encontrado.");
             }
 
+            // Atualiza apenas os campos que foram alterados
             funcionario.Senha = funcionarioDto.Senha;
-            funcionario.NomeFuncionario = funcionarioDto.NomeFuncionario;
-            funcionario.DataNascimento = funcionarioDto.DataNascimento;
             funcionario.Email = funcionarioDto.Email;
             funcionario.Telefone = funcionarioDto.Telefone;
+            funcionario.Status = funcionarioDto.Status;
 
             await _funcionarioService.AtualizarFuncionarioAsync(funcionario);
 
             return NoContent();
         }
+
 
         /// <summary>
         /// Exclui um funcionário específico pelo ID.

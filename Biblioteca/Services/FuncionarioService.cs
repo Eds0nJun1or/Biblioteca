@@ -1,5 +1,5 @@
 ﻿using Biblioteca.Data;
-using Biblioteca.Interfaces;
+ using Biblioteca.Interfaces;
 using Biblioteca.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -80,7 +80,19 @@ namespace Biblioteca.Services
 
         public async Task AtualizarFuncionarioAsync(Funcionario funcionario)
         {
-            _context.Funcionarios.Update(funcionario);
+            // Verifica se o funcionário existe no contexto
+            var existingFuncionario = await _context.Funcionarios.FindAsync(funcionario.FuncionarioId);
+            if (existingFuncionario == null)
+            {
+                throw new ArgumentException("Funcionário não encontrado.");
+            }
+
+            // Atualiza apenas os campos que foram alterados
+            existingFuncionario.Senha = funcionario.Senha;
+            existingFuncionario.Email = funcionario.Email;
+            existingFuncionario.Telefone = funcionario.Telefone;
+            existingFuncionario.Status = funcionario.Status;
+
             await _context.SaveChangesAsync();
         }
 

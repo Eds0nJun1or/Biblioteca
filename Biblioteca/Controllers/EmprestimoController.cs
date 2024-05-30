@@ -89,6 +89,10 @@ namespace Biblioteca.Controllers
             try
             {
                 var emprestimo = await _emprestimoService.GetEmprestimoById(id);
+                if (emprestimo == null)
+                {
+                    return NotFound();
+                }
                 return Ok(emprestimo);
             }
             catch (EmprestimoNotFoundException ex)
@@ -151,6 +155,56 @@ namespace Biblioteca.Controllers
             {
                 var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
                 await _emprestimoService.Atualizar(emprestimo, id, funcionarioId);
+
+                // Mapeia o objeto atualizado para o novo DTO de resposta
+                var responseDto = new UpdateEmprestimoDto
+                {
+                    DataPrevistaDevolucao = emprestimoDto.DataPrevistaDevolucao,
+                    DataDevolucao = emprestimoDto.DataDevolucao,
+                    Status = emprestimoDto.Status
+                };
+
+                // Retorna o novo DTO de resposta
+                return Ok(responseDto);
+            }
+            catch (EmprestimoNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Renova um empréstimo existente.
+        /// </summary>
+        /// <param name="id">ID do empréstimo a ser renovado.</param>
+        /// <param name="renovacaoDto">Objeto contendo os dados de renovação do empréstimo.</param>
+        /// <param name="funcionarioId">ID do funcionário responsável pela renovação.</param>
+        /// <returns>Retorna NoContent se a renovação for bem-sucedida.</returns>
+        /// <response code="204">Indica que a renovação foi bem-sucedida.</response>
+        /// <response code="400">Retorna mensagem de erro se o ID do empréstimo não corresponder ao ID fornecido.</response>
+        /// <response code="404">Retorna mensagem de erro se o empréstimo não for encontrado.</response>
+        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
+        [HttpPut("{id}/renovacao")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RenovarEmprestimo(int id, UpdateRenovacaoDto renovacaoDto, int funcionarioId, IMapper _mapper)
+        {
+            if (id != renovacaoDto.EmprestimoId)
+            {
+                return BadRequest("ID do empréstimo não corresponde ao ID fornecido.");
+            }
+
+            try
+            {
+                var emprestimo = _mapper.Map<Emprestimo>(renovacaoDto);
+                await _emprestimoService.RenovarEmprestimo(emprestimo, id, funcionarioId);
+
                 return NoContent();
             }
             catch (EmprestimoNotFoundException ex)
@@ -172,6 +226,7 @@ namespace Biblioteca.Controllers
         /// <response code="204">Indica que a devolução foi bem-sucedida.</response>
         /// <response code="404">Retorna mensagem de erro se o empréstimo ou usuário não for encontrado.</response>
         /// <response code="400">Retorna mensagem de erro se o empréstimo já estiver devolvido.</response>
+        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
         [HttpPost("devolver/{funcionarioId}/{usuarioId}/{emprestimoId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -195,45 +250,6 @@ namespace Biblioteca.Controllers
             catch (UsuarioSemPermissaoException ex)
             {
                 return Forbid(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Finaliza um empréstimo pelo ID.
-        /// </summary>
-        /// <param name="id">ID do empréstimo a ser finalizado.</param>
-        /// <returns>Retorna NoContent se a finalização for bem-sucedida.</returns>
-        /// <response code="204">Indica que a finalização foi bem-sucedida.</response>
-        /// <response code="400">Retorna mensagem de erro se o empréstimo possui multas pendentes.</response>
-        /// <response code="404">Retorna mensagem de erro se o empréstimo não for encontrado.</response>
-        /// <response code="500">Retorna mensagem de erro se ocorrer um erro interno no servidor.</response>
-        [HttpPost("finalizar/{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> FinalizarEmprestimo(int id)
-        {
-            try
-            {
-                var result = await _emprestimoService.FinalizarEmprestimo(id);
-                if (!result)
-                {
-                    return NotFound("Empréstimo não encontrado.");
-                }
-                return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

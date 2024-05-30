@@ -59,8 +59,6 @@ namespace Biblioteca.Migrations
 
                     b.HasIndex("ExemplarId");
 
-                    b.HasIndex("LivroId");
-
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Emprestimos");
@@ -77,8 +75,9 @@ namespace Biblioteca.Migrations
                     b.Property<int>("LivroId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.HasKey("ExemplarId");
 
@@ -183,9 +182,6 @@ namespace Biblioteca.Migrations
                     b.Property<int>("EmprestimoId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ExemplarId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("FimMulta")
                         .HasColumnType("datetime(6)");
 
@@ -205,8 +201,6 @@ namespace Biblioteca.Migrations
 
                     b.HasIndex("EmprestimoId");
 
-                    b.HasIndex("ExemplarId");
-
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Multas");
@@ -219,9 +213,6 @@ namespace Biblioteca.Migrations
                         .HasColumnType("int");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("UsuarioId"));
-
-                    b.Property<bool>("Bloqueado")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Cpf")
                         .IsRequired()
@@ -252,12 +243,6 @@ namespace Biblioteca.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Biblioteca.Models.Livro", "Livro")
-                        .WithMany()
-                        .HasForeignKey("LivroId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Biblioteca.Models.Usuario", "Usuario")
                         .WithMany("Emprestimos")
                         .HasForeignKey("UsuarioId")
@@ -265,8 +250,6 @@ namespace Biblioteca.Migrations
                         .IsRequired();
 
                     b.Navigation("Exemplar");
-
-                    b.Navigation("Livro");
 
                     b.Navigation("Usuario");
                 });
@@ -290,12 +273,8 @@ namespace Biblioteca.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Biblioteca.Models.Exemplar", null)
-                        .WithMany("Multas")
-                        .HasForeignKey("ExemplarId");
-
                     b.HasOne("Biblioteca.Models.Usuario", "Usuario")
-                        .WithMany("Multas")
+                        .WithMany()
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -313,8 +292,6 @@ namespace Biblioteca.Migrations
             modelBuilder.Entity("Biblioteca.Models.Exemplar", b =>
                 {
                     b.Navigation("Emprestimos");
-
-                    b.Navigation("Multas");
                 });
 
             modelBuilder.Entity("Biblioteca.Models.Livro", b =>
@@ -325,8 +302,6 @@ namespace Biblioteca.Migrations
             modelBuilder.Entity("Biblioteca.Models.Usuario", b =>
                 {
                     b.Navigation("Emprestimos");
-
-                    b.Navigation("Multas");
                 });
 #pragma warning restore 612, 618
         }

@@ -23,6 +23,8 @@ builder.Services.AddScoped<ILivroService, LivroService>();
 builder.Services.AddScoped<IEmprestimoService, EmprestimoService>();
 builder.Services.AddScoped<IMultaService, MultaService>();
 builder.Services.AddScoped<IFuncionarioService, FuncionarioService>();
+builder.Services.AddScoped<IExemplarService, ExemplarService>();
+
 
 builder.Services.AddControllers().AddNewtonsoftJson();
 

@@ -5,9 +5,9 @@ using Biblioteca.Models;
 
 namespace Biblioteca.Profiles
 {
-    public class FuncionaroProfile : Profile
+    public class FuncionarioProfile : Profile
     {
-        public FuncionaroProfile()
+        public FuncionarioProfile()
         {
             CreateMap<CreateFuncionarioDto, Funcionario>();
             CreateMap<Funcionario, ReadFuncionarioDto>();

@@ -33,18 +33,22 @@ namespace Biblioteca.Data
               .WithMany(l => l.Exemplares);
 
             modelBuilder.Entity<Multa>()
-              .HasOne(m => m.Emprestimo) 
-              .WithMany(e => e.Multas) 
-              .HasForeignKey(m => m.EmprestimoId); 
+              .HasOne(m => m.Emprestimo)
+              .WithMany(e => e.Multas)
+              .HasForeignKey(m => m.EmprestimoId);
 
+            // Conversão de enum para string no banco de dados
             modelBuilder.Entity<Emprestimo>()
               .Property(e => e.Status)
               .HasConversion<string>(
                 v => v.ToString(),
                 v => Enum.Parse<StatusEmprestimo>(v));
+
+            modelBuilder.Entity<Exemplar>()
+                .Property(e => e.Status)
+                .HasConversion<string>(
+                    v => v.ToString(),
+                    v => Enum.Parse<StatusExemplar>(v));
         }
     }
 }
-
-
-

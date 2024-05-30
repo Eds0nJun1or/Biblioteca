@@ -6,6 +6,7 @@ using AutoMapper;
 using Biblioteca.Data.Dtos.Request;
 using Biblioteca.Data.Dtos.Response;
 using Biblioteca.Interfaces;
+using Biblioteca.Services.Exceptions;
 
 namespace Biblioteca.Services
 {
@@ -14,12 +15,14 @@ namespace Biblioteca.Services
         private readonly BibliotecaContext _dbContext;
         private readonly IMapper _mapper;
         private readonly IUsuarioService _usuarioService;
+        private readonly IConfiguration _config;
 
-        public EmprestimoService(BibliotecaContext dbContext, IMapper mapper, IUsuarioService usuarioService)
+        public EmprestimoService(BibliotecaContext dbContext, IMapper mapper, IUsuarioService usuarioService, IConfiguration config)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _usuarioService = usuarioService;
+            _config = config;
         }
 
         public async Task<Emprestimo> BuscarPorId(int id)
@@ -47,40 +50,95 @@ namespace Biblioteca.Services
             return emprestimo;
         }
 
-        public async Task<Emprestimo> Atualizar(Emprestimo emprestimo, int id, int funcionarioId)
+        public async Task<Emprestimo> Atualizar(Emprestimo emprestimo, int emprestimoId, int funcionarioId)
         {
-            var emprestimoPorId = await BuscarPorId(id);
+            var emprestimoPorId = await _dbContext.Emprestimos
+                .Include(e => e.Exemplar)
+                    .ThenInclude(ex => ex.Livro)
+                .Include(e => e.Multas)
+                .FirstOrDefaultAsync(e => e.EmprestimoId == emprestimoId);
+
             if (emprestimoPorId == null)
             {
-                throw new ArgumentException($"Empréstimo para o ID: {id} não foi encontrado no banco de dados.");
+                throw new EmprestimoNotFoundException($"Empréstimo com ID {emprestimoId} não encontrado.");
             }
 
-            emprestimoPorId.ExemplarId = emprestimo.ExemplarId;
-            emprestimoPorId.UsuarioId = emprestimo.UsuarioId;
-            emprestimoPorId.FuncionarioId = funcionarioId;
-            emprestimoPorId.DataEmprestimo = emprestimo.DataEmprestimo;
-            emprestimoPorId.DataPrevistaDevolucao = emprestimo.DataPrevistaDevolucao;
-            emprestimoPorId.DataDevolucao = emprestimo.DataDevolucao;
-            emprestimoPorId.Status = emprestimo.Status;
-
+            // Verifica se há atraso
             if (emprestimoPorId.DataDevolucao.HasValue && emprestimoPorId.DataDevolucao.Value > emprestimoPorId.DataPrevistaDevolucao)
             {
                 var diasDeAtraso = (emprestimoPorId.DataDevolucao.Value - emprestimoPorId.DataPrevistaDevolucao).Days;
                 var valorMulta = diasDeAtraso * 1.00f;
 
-                if (valorMulta >= (2 * emprestimoPorId.Exemplar.Livro.Valor))
+                // Verifica se o valor da multa ultrapassa o limite
+                var valorMaximoMulta = 2 * emprestimoPorId.Exemplar.Livro.Valor;
+                if (valorMulta >= valorMaximoMulta)
                 {
                     emprestimoPorId.Status = StatusEmprestimo.Atrasado;
+                    valorMulta = valorMaximoMulta; // Define o valor da multa como o máximo permitido
                 }
 
-                emprestimoPorId.Multas.Add(new Multa { Valor = valorMulta });
+                // Verifica se já existe uma multa associada a este empréstimo
+                var multaExistente = emprestimoPorId.Multas.FirstOrDefault();
+                if (multaExistente != null)
+                {
+                    // Atualiza o valor da multa existente
+                    multaExistente.Valor = valorMulta;
+                }
+                else
+                {
+                    // Adiciona uma nova multa ao empréstimo
+                    emprestimoPorId.Multas.Add(new Multa { Valor = valorMulta });
+                }
             }
 
-            _dbContext.Emprestimos.Update(emprestimoPorId);
+            // Atualiza os campos do empréstimo existente com os valores do empréstimo fornecido
+            emprestimoPorId.DataPrevistaDevolucao = emprestimo.DataPrevistaDevolucao;
+            emprestimoPorId.DataDevolucao = emprestimo.DataDevolucao;
+            emprestimoPorId.Status = emprestimo.Status;
+
+            // Atualiza a data de renovação se o status for Renovado
+            if (emprestimo.Status == StatusEmprestimo.Renovado)
+            {
+                // Use o método GetValue<T> para obter o valor da configuração
+                emprestimoPorId.DataPrevistaDevolucao = DateTime.Now.AddDays(_config.GetValue<int>("DiasRenovacao"));
+            }
+
+            // Salva as alterações no banco de dados
             await _dbContext.SaveChangesAsync();
 
             return emprestimoPorId;
         }
+
+        public async Task<Emprestimo> RenovarEmprestimo(Emprestimo renovacaoDto, int emprestimoId, int funcionarioId)
+        {
+            var emprestimoPorId = await _dbContext.Emprestimos
+                .Include(e => e.Exemplar)
+                    .ThenInclude(ex => ex.Livro)
+                .Include(e => e.Multas)
+                .FirstOrDefaultAsync(e => e.EmprestimoId == emprestimoId);
+
+            if (emprestimoPorId == null)
+            {
+                throw new EmprestimoNotFoundException($"Empréstimo com ID {emprestimoId} não encontrado.");
+            }
+
+            // Atualiza os campos do empréstimo existente com os valores da renovação
+            emprestimoPorId.DataDevolucao = renovacaoDto.DataDevolucao;
+            emprestimoPorId.Status = renovacaoDto.Status;
+
+            // Atualiza a data de renovação se o status for Renovado
+            if (renovacaoDto.Status == StatusEmprestimo.Renovado)
+            {
+                // Use o método GetValue<T> para obter o valor da configuração
+                emprestimoPorId.DataPrevistaDevolucao = DateTime.Now.AddDays(_config.GetValue<int>("DiasRenovacao"));
+            }
+
+            // Salva as alterações no banco de dados
+            await _dbContext.SaveChangesAsync();
+
+            return emprestimoPorId;
+        }
+
 
         private async Task<bool> VerificarMulta(int emprestimoId)
         {
@@ -133,9 +191,8 @@ namespace Biblioteca.Services
             var emprestimo = _mapper.Map<Emprestimo>(emprestimoDto);
             emprestimo.FuncionarioId = funcionarioId;
             emprestimo.Status = StatusEmprestimo.EmAndamento;
-            emprestimo.DataEmprestimo = DateTime.Now;
+            emprestimo.DataEmprestimo = DateTime.Now; // Define a data do empréstimo como a data atual
             emprestimo.LivroId = exemplar.LivroId;
-
             emprestimo.DataPrevistaDevolucao = CalcularDataPrevistaDevolucao(emprestimo.DataEmprestimo);
 
             try
@@ -178,6 +235,7 @@ namespace Biblioteca.Services
                 .Include(e => e.Usuario)
                 .Include(e => e.Exemplar)
                     .ThenInclude(ex => ex.Livro)
+                .Include(e => e.Multas) // Carregar Multas explicitamente
                 .ToListAsync();
 
             var emprestimosDto = new List<ReadEmprestimoDto>();
@@ -188,7 +246,7 @@ namespace Biblioteca.Services
 
                 emprestimoDto.NomeUsuario = emprestimo.Usuario.Nome;
                 emprestimoDto.TituloExemplar = emprestimo.Exemplar.Livro.Nome;
-                emprestimoDto.Multa = await VerificarMulta(emprestimo.EmprestimoId);
+                emprestimoDto.Multa = emprestimo.Multas != null && emprestimo.Multas.Any(m => m.Status == StatusMulta.Pendente);
 
                 emprestimosDto.Add(emprestimoDto);
             }
@@ -202,6 +260,7 @@ namespace Biblioteca.Services
                 .Include(e => e.Usuario)
                 .Include(e => e.Exemplar)
                     .ThenInclude(ex => ex.Livro)
+                .Include(e => e.Multas) // Carregar Multas explicitamente
                 .FirstOrDefaultAsync(e => e.EmprestimoId == id);
 
             if (emprestimo == null)
@@ -213,43 +272,10 @@ namespace Biblioteca.Services
 
             emprestimoDto.NomeUsuario = emprestimo.Usuario.Nome;
             emprestimoDto.TituloExemplar = emprestimo.Exemplar.Livro.Nome;
-            emprestimoDto.Multa = await VerificarMulta(emprestimo.EmprestimoId);
+            emprestimoDto.Multa = emprestimo.Multas != null && emprestimo.Multas.Any(m => m.Status == StatusMulta.Pendente);
 
             return emprestimoDto;
         }
-
-        public async Task<bool> FinalizarEmprestimo(int id)
-        {
-            var emprestimo = await _dbContext.Emprestimos.FindAsync(id);
-
-            if (emprestimo == null)
-            {
-                throw new ArgumentException($"Empréstimo para o ID: {id} não foi encontrado no banco de dados.");
-            }
-
-            if (await VerificarMulta(id)) // Método que verifica multas pendentes
-            {
-                throw new InvalidOperationException("Empréstimo possui multas pendentes.");
-            }
-
-            emprestimo.DataDevolucao = DateTime.Now;
-            emprestimo.Status = StatusEmprestimo.Devolvido;
-
-            _dbContext.Emprestimos.Update(emprestimo);
-
-            var exemplar = await _dbContext.Exemplares.FirstOrDefaultAsync(e => e.ExemplarId == emprestimo.ExemplarId);
-
-            if (exemplar != null)
-            {
-                exemplar.Status = StatusExemplar.Disponivel;
-                _dbContext.Exemplares.Update(exemplar);
-            }
-
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
-
 
         public async Task<IEnumerable<ReadEmprestimoDto>> GetEmprestimosByUsuarioId(int usuarioId)
         {
@@ -297,10 +323,12 @@ namespace Biblioteca.Services
                 throw new InvalidOperationException("Empréstimo possui multas pendentes.");
             }
 
+            // Atualiza o status do empréstimo para "Devolvido"
             emprestimo.DataDevolucao = DateTime.Now;
             emprestimo.Status = StatusEmprestimo.Devolvido;
             emprestimo.FuncionarioId = funcionarioId;
 
+            // Atualiza o status do exemplar para "Disponível"
             var exemplar = await _dbContext.Exemplares.FirstOrDefaultAsync(e => e.ExemplarId == emprestimo.ExemplarId);
             if (exemplar != null)
             {
@@ -311,5 +339,6 @@ namespace Biblioteca.Services
             _dbContext.Emprestimos.Update(emprestimo);
             await _dbContext.SaveChangesAsync();
         }
+
     }
 }
